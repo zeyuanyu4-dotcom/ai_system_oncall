@@ -1,0 +1,22 @@
+server:
+  port: 8080
+  mode: debug  # debug, release, test
+
+database:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: "12345678"
+  dbname: oncall_platform
+
+jwt:
+  secret: your-jwt-secret-key-change-in-production
+  expire_time: 24  # hours
+
+log:
+  level: debug
+  filename: logs/app.log
+  max_size: 100       # MB
+  max_backups: 5      # number of backup files
+  max_age: 30         # days to keep
+  compress: true

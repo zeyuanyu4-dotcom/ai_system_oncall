@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能 OnCall 问题处理平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .header .subtitle {
+            opacity: 0.8;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        /* Login */
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        /* Navigation */
+        .nav {
+            display: flex;
+            gap: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .nav a {
+            color: #666;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        .nav a:hover, .nav a.active {
+            background: #667eea;
+            color: white;
+        }
+        .user-info {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info span {
+            color: #666;
+        }
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .card-header h3 {
+            font-size: 18px;
+            color: #333;
+        }
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        /* Status Badge */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-processing { background: #cce5ff; color: #004085; }
+        .badge-resolved { background: #d4edda; color: #155724; }
+        .badge-closed { background: #e2e3e5; color: #383d41; }
+        .badge-p0 { background: #f8d7da; color: #721c24; }
+        .badge-p1 { background: #fff3cd; color: #856404; }
+        .badge-p2 { background: #cce5ff; color: #004085; }
+        .badge-p3 { background: #d4edda; color: #155724; }
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 500px;
+            max-width: 90%;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 {
+            font-size: 18px;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .stat-card .label {
+            color: #888;
+            margin-top: 5px;
+        }
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        .toast-success { background: #27ae60; }
+        .toast-error { background: #e74c3c; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        /* Hidden */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="login-container">
+        <h2>智能 OnCall 平台</h2>
+        <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" id="loginEmail" value="test@test.com" placeholder="请输入邮箱">
+        </div>
+        <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="loginPassword" value="123456" placeholder="请输入密码">
+        </div>
+        <button class="btn btn-primary" onclick="login()">登 录</button>
+        <p style="text-align: center; margin-top: 20px; color: #888; font-size: 13px;">
+            测试账号: test@test.com / 123456
+        </p>
+    </div>
+
+    <!-- Main Page -->
+    <div id="mainPage" class="hidden">
+        <div class="header">
+            <div class="container">
+                <h1>智能 OnCall 问题处理与研发协同平台</h1>
+                <div class="subtitle">Intelligent OnCall Issue Management Platform</div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="nav">
+                <a href="#" class="active" onclick="showSection('dashboard')">仪表盘</a>
+                <a href="#" onclick="showSection('projects')">项目管理</a>
+                <a href="#" onclick="showSection('issues')">问题列表</a>
+                <div class="user-info">
+                    <span id="currentUser">-</span>
+                    <button class="btn btn-secondary" onclick="logout()">退出</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div id="dashboardSection">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="value" id="statProjects">0</div>
+                        <div class="label">项目数量</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="statIssues">0</div>
+                        <div class="label">问题总数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="statPending">0</div>
+                        <div class="label">待处理</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="statResolved">0</div>
+                        <div class="label">已解决</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>最近问题</h3>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>问题编号</th>
+                                <th>标题</th>
+                                <th>项目</th>
+                                <th>优先级</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentIssuesTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Projects Section -->
+            <div id="projectsSection" class="hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>项目列表</h3>
+                        <button class="btn btn-primary" onclick="showCreateProjectModal()">创建项目</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>项目名称</th>
+                                <th>项目标识</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projectsTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Issues Section -->
+            <div id="issuesSection" class="hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>问题列表</h3>
+                        <button class="btn btn-primary" onclick="showCreateIssueModal()">创建问题</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>问题编号</th>
+                                <th>标题</th>
+                                <th>项目</th>
+                                <th>优先级</th>
+                                <th>状态</th>
+                                <th>创建人</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="issuesTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Project Modal -->
+    <div id="createProjectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>创建项目</h3>
+                <button class="close-btn" onclick="closeModal('createProjectModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>项目名称</label>
+                <input type="text" id="projectName" placeholder="请输入项目名称">
+            </div>
+            <div class="form-group">
+                <label>项目标识</label>
+                <input type="text" id="projectCode" placeholder="如: user-center">
+            </div>
+            <div class="form-group">
+                <label>项目描述</label>
+                <textarea id="projectDesc" rows="3" placeholder="请输入项目描述"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="createProject()">创建项目</button>
+        </div>
+    </div>
+
+    <!-- Create Issue Modal -->
+    <div id="createIssueModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>创建问题</h3>
+                <button class="close-btn" onclick="closeModal('createIssueModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>问题标题</label>
+                <input type="text" id="issueTitle" placeholder="请输入问题标题">
+            </div>
+            <div class="form-group">
+                <label>所属项目</label>
+                <select id="issueProject">
+                </select>
+            </div>
+            <div class="form-group">
+                <label>优先级</label>
+                <select id="issuePriority">
+                    <option value="P0">P0 - 紧急</option>
+                    <option value="P1">P1 - 高</option>
+                    <option value="P2" selected>P2 - 中</option>
+                    <option value="P3">P3 - 低</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>问题类型</label>
+                <select id="issueType">
+                    <option value="api_error">接口异常</option>
+                    <option value="data_issue">数据问题</option>
+                    <option value="permission_issue">权限问题</option>
+                    <option value="performance_issue">性能问题</option>
+                    <option value="release_issue">发布问题</option>
+                    <option value="config_issue">配置问题</option>
+                    <option value="other">其他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>问题描述</label>
+                <textarea id="issueDesc" rows="3" placeholder="请描述问题详情"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="createIssue()">创建问题</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let token = localStorage.getItem('token') || '';
+        let currentUser = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (token) {
+                getCurrentUser();
+            }
+        });
+
+        // API Helper
+        async function api(method, path, data = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+            if (token) {
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+            const response = await fetch(`${API_BASE}${path}`, options);
+            return response.json();
+        }
+
+        // Toast
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Login
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            const res = await api('POST', '/auth/login', { email, password });
+            
+            if (res.code === 0) {
+                token = res.data.token;
+                currentUser = res.data.user_info;
+                localStorage.setItem('token', token);
+                showToast('登录成功');
+                showMainPage();
+            } else {
+                showToast(res.message, 'error');
+            }
+        }
+
+        // Logout
+        function logout() {
+            token = '';
+            currentUser = null;
+            localStorage.removeItem('token');
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('mainPage').classList.add('hidden');
+            showToast('已退出登录');
+        }
+
+        // Get Current User
+        async function getCurrentUser() {
+            const res = await api('GET', '/auth/me');
+            if (res.code === 0) {
+                currentUser = res.data;
+                showMainPage();
+            } else {
+                localStorage.removeItem('token');
+                token = '';
+            }
+        }
+
+        // Show Main Page
+        function showMainPage() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainPage').classList.remove('hidden');
+            document.getElementById('currentUser').textContent = currentUser.username;
+            loadDashboard();
+        }
+
+        // Show Section
+        function showSection(section) {
+            document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('projectsSection').classList.add('hidden');
+            document.getElementById('issuesSection').classList.add('hidden');
+            document.getElementById(`${section}Section`).classList.remove('hidden');
+            
+            if (section === 'dashboard') loadDashboard();
+            if (section === 'projects') loadProjects();
+            if (section === 'issues') loadIssues();
+        }
+
+        // Load Dashboard
+        async function loadDashboard() {
+            const [projects, issues] = await Promise.all([
+                api('GET', '/projects'),
+                api('GET', '/issues')
+            ]);
+            
+            const projectList = projects.data?.list || [];
+            const issueList = issues.data?.list || [];
+            
+            document.getElementById('statProjects').textContent = projectList.length;
+            document.getElementById('statIssues').textContent = issueList.length;
+            document.getElementById('statPending').textContent = issueList.filter(i => 
+                ['pending_analysis', 'pending_assignment', 'processing'].includes(i.status)
+            ).length;
+            document.getElementById('statResolved').textContent = issueList.filter(i => 
+                i.status === 'resolved' || i.status === 'closed'
+            ).length;
+            
+            // Recent issues table
+            const tbody = document.getElementById('recentIssuesTable');
+            tbody.innerHTML = issueList.slice(0, 5).map(issue => `
+                <tr>
+                    <td>${issue.issue_no}</td>
+                    <td>${issue.title}</td>
+                    <td>${issue.project_name || '-'}</td>
+                    <td><span class="badge badge-${issue.priority.toLowerCase()}">${issue.priority}</span></td>
+                    <td><span class="badge badge-${getStatusClass(issue.status)}">${getStatusText(issue.status)}</span></td>
+                    <td>${formatDate(issue.created_at)}</td>
+                </tr>
+            `).join('') || '<tr><td colspan="6" style="text-align: center;">暂无数据</td></tr>';
+        }
+
+        // Load Projects
+        async function loadProjects() {
+            const res = await api('GET', '/projects');
+            const tbody = document.getElementById('projectsTable');
+            const list = res.data?.list || [];
+            
+            tbody.innerHTML = list.map(p => `
+                <tr>
+                    <td>${p.id}</td>
+                    <td>${p.name}</td>
+                    <td>${p.code}</td>
+                    <td><span class="badge ${p.status === 1 ? 'badge-p3' : 'badge-closed'}">${p.status === 1 ? '正常' : '停用'}</span></td>
+                    <td>${formatDate(p.created_at)}</td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="deleteProject(${p.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="6" style="text-align: center;">暂无数据</td></tr>';
+            
+            // Update issue project select
+            const select = document.getElementById('issueProject');
+            select.innerHTML = list.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        }
+
+        // Load Issues
+        async function loadIssues() {
+            const res = await api('GET', '/issues');
+            const tbody = document.getElementById('issuesTable');
+            const list = res.data?.list || [];
+            
+            tbody.innerHTML = list.map(i => `
+                <tr>
+                    <td>${i.issue_no}</td>
+                    <td>${i.title}</td>
+                    <td>${i.project_name || '-'}</td>
+                    <td><span class="badge badge-${i.priority.toLowerCase()}">${i.priority}</span></td>
+                    <td><span class="badge badge-${getStatusClass(i.status)}">${getStatusText(i.status)}</span></td>
+                    <td>${i.creator_name || '-'}</td>
+                    <td>${formatDate(i.created_at)}</td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="viewIssue(${i.id})">查看</button>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="8" style="text-align: center;">暂无数据</td></tr>';
+        }
+
+        // Create Project
+        async function createProject() {
+            const data = {
+                name: document.getElementById('projectName').value,
+                code: document.getElementById('projectCode').value,
+                description: document.getElementById('projectDesc').value
+            };
+            
+            const res = await api('POST', '/projects', data);
+            if (res.code === 0) {
+                showToast('项目创建成功');
+                closeModal('createProjectModal');
+                loadProjects();
+            } else {
+                showToast(res.message, 'error');
+            }
+        }
+
+        // Delete Project
+        async function deleteProject(id) {
+            if (!confirm('确定要删除这个项目吗？')) return;
+            const res = await api('DELETE', `/projects/${id}`);
+            if (res.code === 0) {
+                showToast('项目已删除');
+                loadProjects();
+            } else {
+                showToast(res.message, 'error');
+            }
+        }
+
+        // Create Issue
+        async function createIssue() {
+            const data = {
+                title: document.getElementById('issueTitle').value,
+                project_id: parseInt(document.getElementById('issueProject').value),
+                priority: document.getElementById('issuePriority').value,
+                issue_type: document.getElementById('issueType').value,
+                description: document.getElementById('issueDesc').value
+            };
+            
+            const res = await api('POST', '/issues', data);
+            if (res.code === 0) {
+                showToast('问题创建成功');
+                closeModal('createIssueModal');
+                loadIssues();
+            } else {
+                showToast(res.message, 'error');
+            }
+        }
+
+        // View Issue
+        function viewIssue(id) {
+            showToast('问题详情功能开发中...');
+        }
+
+        // Modal
+        function showCreateProjectModal() {
+            document.getElementById('projectName').value = '';
+            document.getElementById('projectCode').value = '';
+            document.getElementById('projectDesc').value = '';
+            document.getElementById('createProjectModal').classList.add('show');
+        }
+
+        function showCreateIssueModal() {
+            document.getElementById('issueTitle').value = '';
+            document.getElementById('issueDesc').value = '';
+            document.getElementById('createIssueModal').classList.add('show');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        // Helpers
+        function getStatusClass(status) {
+            const map = {
+                'pending_analysis': 'pending',
+                'pending_assignment': 'pending',
+                'processing': 'processing',
+                'pending_confirmation': 'processing',
+                'resolved': 'resolved',
+                'closed': 'closed',
+                'reopened': 'pending'
+            };
+            return map[status] || 'pending';
+        }
+
+        function getStatusText(status) {
+            const map = {
+                'pending_analysis': '待分析',
+                'pending_assignment': '待分配',
+                'processing': '处理中',
+                'pending_confirmation': '待确认',
+                'resolved': '已解决',
+                'closed': '已关闭',
+                'reopened': '重新打开'
+            };
+            return map[status] || status;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
+        }
+
+        // Close modal on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

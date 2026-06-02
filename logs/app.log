@@ -1,0 +1,10 @@
+{"level":"fatal","time":"2026-06-02T16:02:30.287+0800","caller":"server/main.go:57","msg":"Failed to initialize database: failed to connect database: Error 1045 (28000): Access denied for user 'root'@'localhost' (using password: YES)"}
+{"level":"info","time":"2026-06-02T16:11:19.504+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-02T16:17:30.730+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"fatal","time":"2026-06-02T16:17:30.731+0800","caller":"server/main.go:76","msg":"Failed to start server: listen tcp :8080: bind: address already in use"}
+{"level":"info","time":"2026-06-02T16:22:12.666+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"fatal","time":"2026-06-02T16:22:12.666+0800","caller":"server/main.go:76","msg":"Failed to start server: listen tcp :8080: bind: address already in use"}
+{"level":"info","time":"2026-06-02T16:24:53.286+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-02T16:26:57.023+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"fatal","time":"2026-06-02T16:26:57.023+0800","caller":"server/main.go:76","msg":"Failed to start server: listen tcp :8080: bind: address already in use"}
+{"level":"info","time":"2026-06-02T16:27:27.080+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
