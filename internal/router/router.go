@@ -41,6 +41,8 @@ func SetupRouter() *gin.Engine {
 	knowledgeDocVersionRepo := repository.NewKnowledgeDocVersionRepository(database.GetDB())
 	knowledgeDocAttachmentRepo := repository.NewKnowledgeDocAttachmentRepository(database.GetDB())
 	aiAnalysisTaskRepo := repository.NewAIAnalysisTaskRepository(database.GetDB())
+	reportRepo := repository.NewReportRepository(database.GetDB())
+	dashboardRepo := repository.NewDashboardRepository(database.GetDB())
 
 	// Initialize services
 	authService := service.NewAuthService(userRepo)
@@ -63,6 +65,8 @@ func SetupRouter() *gin.Engine {
 		aiClient = client.NewAIClient(&config.GetConfig().AI)
 	}
 	aiAnalysisTaskService := service.NewAIAnalysisTaskService(aiAnalysisTaskRepo, issueRepo, aiClient)
+	reportService := service.NewReportService(reportRepo, issueRepo, serviceRepo, aiClient)
+	dashboardService := service.NewDashboardService(dashboardRepo, projectMemberRepo, projectRepo)
 
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService)
@@ -80,6 +84,8 @@ func SetupRouter() *gin.Engine {
 	knowledgeDocAttachmentHandler := handler.NewKnowledgeDocAttachmentHandler(knowledgeDocAttachmentService)
 	aiHandler := handler.NewAIHandler(issueService, aiClient)
 	aiTaskHandler := handler.NewAIAnalysisTaskHandler(aiAnalysisTaskService)
+	reportHandler := handler.NewReportHandler(reportService)
+	dashboardHandler := handler.NewDashboardHandler(dashboardService)
 
 	// Public routes (no auth required)
 	public := r.Group("/api")
@@ -204,6 +210,22 @@ func SetupRouter() *gin.Engine {
 		protected.GET("/issues/:id/agent-tasks", aiTaskHandler.GetIssueTasks)
 		protected.GET("/agent-tasks/:task_id", aiTaskHandler.GetTask)
 		protected.POST("/agent-tasks/:task_id/cancel", aiTaskHandler.CancelTask)
+
+		// Reports
+		protected.POST("/reports/daily", reportHandler.GenerateDailyReport)
+		protected.GET("/reports/daily/:date", reportHandler.GetDailyReport)
+		protected.POST("/reports/daily/auto", reportHandler.GenerateDailyReportAuto)
+		protected.POST("/reports/weekly", reportHandler.GenerateWeeklyReport)
+		protected.GET("/reports/weekly/:week", reportHandler.GetWeeklyReport)
+		protected.POST("/reports/incident", reportHandler.GenerateIncidentReview)
+		protected.GET("/reports/incident/:id", reportHandler.GetIncidentReview)
+		protected.GET("/reports", reportHandler.ListReports)
+		protected.GET("/reports/:id", reportHandler.GetReport)
+
+		// Dashboard (系统管理员和项目管理员可访问)
+		protected.GET("/dashboard/stats", dashboardHandler.GetDashboardStats)
+		protected.GET("/dashboard/trend", dashboardHandler.GetTrendData)
+		protected.POST("/dashboard/generate-stat", dashboardHandler.GenerateDailyStat)
 	}
 
 	return r

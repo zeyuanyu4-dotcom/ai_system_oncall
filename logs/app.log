@@ -67,3 +67,29 @@
 {"level":"info","time":"2026-06-04T17:00:13.504+0800","caller":"server/main.go:85","msg":"Shutting down server..."}
 {"level":"info","time":"2026-06-04T17:00:13.507+0800","caller":"server/main.go:95","msg":"Server exited"}
 {"level":"info","time":"2026-06-04T17:03:56.596+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-04T19:46:47.244+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"fatal","time":"2026-06-04T19:46:47.245+0800","caller":"server/main.go:76","msg":"Failed to start server: listen tcp :8080: bind: address already in use"}
+{"level":"info","time":"2026-06-04T19:48:49.116+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-04T20:12:41.203+0800","caller":"server/main.go:85","msg":"Shutting down server..."}
+{"level":"info","time":"2026-06-04T20:12:41.210+0800","caller":"server/main.go:95","msg":"Server exited"}
+{"level":"info","time":"2026-06-04T20:19:33.862+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-04T21:09:22.207+0800","caller":"server/main.go:85","msg":"Shutting down server..."}
+{"level":"info","time":"2026-06-04T21:09:22.215+0800","caller":"server/main.go:95","msg":"Server exited"}
+{"level":"info","time":"2026-06-04T21:09:27.335+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-04T21:42:43.077+0800","caller":"server/main.go:85","msg":"Shutting down server..."}
+{"level":"info","time":"2026-06-04T21:42:43.086+0800","caller":"server/main.go:95","msg":"Server exited"}
+{"level":"info","time":"2026-06-04T21:42:48.085+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-04T21:42:49.621+0800","caller":"server/main.go:85","msg":"Shutting down server..."}
+{"level":"info","time":"2026-06-04T21:42:49.622+0800","caller":"server/main.go:95","msg":"Server exited"}
+{"level":"info","time":"2026-06-04T21:43:10.806+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-04T21:53:09.529+0800","caller":"server/main.go:85","msg":"Shutting down server..."}
+{"level":"info","time":"2026-06-04T21:53:09.532+0800","caller":"server/main.go:95","msg":"Server exited"}
+{"level":"info","time":"2026-06-04T21:53:21.375+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-04T22:02:15.085+0800","caller":"server/main.go:85","msg":"Shutting down server..."}
+{"level":"info","time":"2026-06-04T22:02:15.088+0800","caller":"server/main.go:95","msg":"Server exited"}
+{"level":"info","time":"2026-06-04T22:02:20.179+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-04T22:09:32.970+0800","caller":"server/main.go:85","msg":"Shutting down server..."}
+{"level":"info","time":"2026-06-04T22:09:32.972+0800","caller":"server/main.go:95","msg":"Server exited"}
+{"level":"info","time":"2026-06-04T22:09:37.939+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-04T22:10:27.065+0800","caller":"server/main.go:85","msg":"Shutting down server..."}
+{"level":"info","time":"2026-06-04T22:10:27.066+0800","caller":"server/main.go:95","msg":"Server exited"}

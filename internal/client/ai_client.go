@@ -244,3 +244,51 @@ func (c *AIClient) HealthCheck() error {
 
 	return nil
 }
+
+// GenerateText 生成文本（用于报告分析）
+func (c *AIClient) GenerateText(prompt string) (string, error) {
+	url := fmt.Sprintf("%s/api/generate", c.baseURL)
+
+	reqBody := map[string]string{"prompt": prompt}
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		return "", fmt.Errorf("marshal request failed: %w", err)
+	}
+
+	httpReq, err := http.NewRequest("POST", url, bytes.NewReader(body))
+	if err != nil {
+		return "", fmt.Errorf("create request failed: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(httpReq)
+	if err != nil {
+		return "", fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("read response failed: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("AI service error: status=%d, body=%s", resp.StatusCode, string(respBody))
+	}
+
+	// 尝试解析为通用响应
+	var result struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+		Data    string `json:"data"`
+	}
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return "", fmt.Errorf("unmarshal response failed: %w", err)
+	}
+
+	if result.Code != 0 {
+		return "", fmt.Errorf("AI generate failed: %s", result.Message)
+	}
+
+	return result.Data, nil
+}

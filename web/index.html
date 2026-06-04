@@ -283,6 +283,9 @@
                 <a href="#" onclick="showPage('historyIssues')" data-page="historyIssues">
                     <i class="bi bi-clock-history"></i>历史问题查询
                 </a>
+                <a href="#" onclick="showPage('reports')" data-page="reports">
+                    <i class="bi bi-file-earmark-text"></i>报告管理
+                </a>
             </div>
             <div class="position-absolute bottom-0 w-100 p-3 border-top">
                 <div class="d-flex align-items-center">
@@ -302,69 +305,193 @@
         <div class="main-content">
             <!-- 仪表盘 -->
             <div id="dashboardPage">
-                <h4 class="mb-4">仪表盘</h4>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>数据看板</h4>
+                    <small class="text-muted" id="statDateLabel">统计日期: -</small>
+                </div>
+
+                <!-- 概览卡片 -->
                 <div class="row mb-4">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="stat-card">
-                            <div class="icon gradient-bg"><i class="bi bi-folder"></i></div>
-                            <div class="value" id="statProjects">0</div>
-                            <div class="label">项目数量</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card">
-                            <div class="icon" style="background: #28a745;"><i class="bi bi-gear"></i></div>
-                            <div class="value" id="statServices">0</div>
-                            <div class="label">服务数量</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card">
-                            <div class="icon" style="background: #dc3545;"><i class="bi bi-exclamation-triangle"></i></div>
-                            <div class="value" id="statIssues">0</div>
+                            <div class="icon gradient-bg"><i class="bi bi-exclamation-triangle"></i></div>
+                            <div class="value" id="dashTotalIssues">0</div>
                             <div class="label">问题总数</div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <div class="stat-card">
+                            <div class="icon" style="background: #28a745;"><i class="bi bi-plus-circle"></i></div>
+                            <div class="value" id="dashNewIssues">0</div>
+                            <div class="label">新增问题</div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="stat-card">
+                            <div class="icon" style="background: #17a2b8;"><i class="bi bi-check-circle"></i></div>
+                            <div class="value" id="dashResolved">0</div>
+                            <div class="label">已解决</div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
                         <div class="stat-card">
                             <div class="icon" style="background: #ffc107;"><i class="bi bi-hourglass-split"></i></div>
-                            <div class="value" id="statPending">0</div>
-                            <div class="label">待处理</div>
+                            <div class="value" id="dashUnresolved">0</div>
+                            <div class="label">未闭环</div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="stat-card">
+                            <div class="icon" style="background: #dc3545;"><i class="bi bi-fire"></i></div>
+                            <div class="value" id="dashP0P1">0</div>
+                            <div class="label">高优问题</div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="stat-card">
+                            <div class="icon" style="background: #6f42c1;"><i class="bi bi-clock"></i></div>
+                            <div class="value" id="dashAvgTime">0h</div>
+                            <div class="label">平均处理时长</div>
                         </div>
                     </div>
                 </div>
-                
+
+                <!-- 第二行卡片 -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="icon" style="background: #fd7e14;"><i class="bi bi-arrow-repeat"></i></div>
+                            <div class="value" id="dashRepeated">0</div>
+                            <div class="label">重复问题</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="icon" style="background: #20c997;"><i class="bi bi-robot"></i></div>
+                            <div class="value" id="dashAIAnalysis">0</div>
+                            <div class="label">AI分析次数</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="icon" style="background: #0dcaf0;"><i class="bi bi-hand-thumbs-up"></i></div>
+                            <div class="value" id="dashAIAdopted">0</div>
+                            <div class="label">AI建议采纳</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="icon" style="background: #198754;"><i class="bi bi-percent"></i></div>
+                            <div class="value" id="dashAIAdoptRate">0%</div>
+                            <div class="label">AI采纳率</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图表区域 -->
                 <div class="row">
-                    <div class="col-md-8">
+                    <div class="col-md-6">
                         <div class="card p-4">
-                            <h5 class="mb-3">最近问题</h5>
-                            <div id="recentIssues">
+                            <h5 class="mb-3">问题类型分布</h5>
+                            <div id="issueTypeDistribution">
                                 <p class="text-muted text-center py-4">暂无数据</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="card p-4">
-                            <h5 class="mb-3">问题状态分布</h5>
-                            <div id="statusChart">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>待分析</span>
-                                    <span class="badge bg-secondary" id="chartPendingAnalysis">0</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>处理中</span>
-                                    <span class="badge bg-info" id="chartProcessing">0</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>已解决</span>
-                                    <span class="badge bg-success" id="chartResolved">0</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>已关闭</span>
-                                    <span class="badge bg-secondary" id="chartClosed">0</span>
-                                </div>
+                            <h5 class="mb-3">服务问题排行 TOP10</h5>
+                            <div id="serviceRanking">
+                                <p class="text-muted text-center py-4">暂无数据</p>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- 项目问题排行（仅系统管理员可见） -->
+                <div class="card p-4 mt-4" id="projectRankingCard" style="display: none;">
+                    <h5 class="mb-3">项目问题排行 TOP10</h5>
+                    <div id="projectRanking">
+                        <p class="text-muted text-center py-4">暂无数据</p>
+                    </div>
+                </div>
+
+                <!-- 趋势图 -->
+                <div class="card p-4 mt-4">
+                    <h5 class="mb-3">历史趋势</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <input type="date" class="form-control" id="trendStartDate">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="date" class="form-control" id="trendEndDate">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" onclick="loadTrendData()">查询</button>
+                        </div>
+                    </div>
+                    <div id="trendChart" style="height: 300px; overflow-x: auto;">
+                        <p class="text-muted text-center py-4">选择日期范围查看趋势</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 报告管理页面 -->
+            <div id="reportsPage" class="hidden">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>报告管理</h4>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="showGenerateDailyReportModal()">
+                            <i class="bi bi-plus"></i> 生成日报
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="showGenerateWeeklyReportModal()">
+                            <i class="bi bi-plus"></i> 生成周报
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="showGenerateIncidentReviewModal()">
+                            <i class="bi bi-exclamation-triangle"></i> 事件复盘
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 筛选 -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <select class="form-control" id="reportTypeFilter" onchange="loadReports()">
+                                    <option value="">全部报告</option>
+                                    <option value="daily">日报</option>
+                                    <option value="weekly">周报</option>
+                                    <option value="incident">事件复盘</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-primary w-100" onclick="loadReports()">刷新</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 今日日报预览 -->
+                <div class="card mb-4" id="todayReportCard">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-calendar-day"></i> 今日日报</h5>
+                    </div>
+                    <div class="card-body" id="todayReportContent">
+                        <p class="text-muted text-center py-4">暂无今日日报</p>
+                    </div>
+                </div>
+
+                <!-- 报告列表 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">历史报告</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="reportsList">
+                            <p class="text-muted text-center py-4">暂无报告</p>
+                        </div>
+                        <div id="reportsPagination" class="d-flex justify-content-center"></div>
                     </div>
                 </div>
             </div>
@@ -1377,6 +1504,20 @@
                 </div>
             </div>
 
+            <!-- 通用详情弹窗 -->
+            <div class="modal fade" id="modal">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalTitle">详情</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body" id="modalBody"></div>
+                        <div class="modal-footer" id="modalFooter"></div>
+                    </div>
+                </div>
+            </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
@@ -1616,49 +1757,145 @@
             if (page === 'logs') loadLogs();
             if (page === 'knowledgeDocs') loadKnowledgeDocs();
             if (page === 'historyIssues') initHistoryIssuesPage();
+            if (page === 'reports') loadReports();
         }
 
         // 加载仪表盘
         async function loadDashboard() {
-            const [projRes, svcRes, issueRes] = await Promise.all([
-                api('GET', '/projects'),
-                api('GET', '/services?page_size=100'),
-                api('GET', '/issues?page_size=100')
-            ]);
-            
-            const projectList = projRes.data?.list || [];
-            const serviceList = svcRes.data?.list || [];
-            const issueList = issueRes.data?.list || [];
-            
-            document.getElementById('statProjects').textContent = projectList.length;
-            document.getElementById('statServices').textContent = serviceList.length;
-            document.getElementById('statIssues').textContent = issueList.length;
-            
-            const pending = issueList.filter(i => ['pending_analysis', 'pending_assignment', 'processing'].includes(i.status)).length;
-            document.getElementById('statPending').textContent = pending;
-            
-            // 状态统计
-            document.getElementById('chartPendingAnalysis').textContent = issueList.filter(i => i.status === 'pending_analysis' || i.status === 'pending_assignment').length;
-            document.getElementById('chartProcessing').textContent = issueList.filter(i => i.status === 'processing').length;
-            document.getElementById('chartResolved').textContent = issueList.filter(i => i.status === 'resolved').length;
-            document.getElementById('chartClosed').textContent = issueList.filter(i => i.status === 'closed').length;
-            
-            // 最近问题
-            const recentHtml = issueList.slice(0, 5).map(i => `
-                <div class="issue-card priority-${i.priority}" onclick="viewIssue(${i.id})">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <span class="text-muted small">${i.issue_no}</span>
-                            <div class="fw-bold">${i.title}</div>
+            try {
+                const res = await api('GET', '/dashboard/stats');
+                if (res.code !== 0) {
+                    // 权限不足时显示提示
+                    document.getElementById('dashboardPage').innerHTML = `
+                        <div class="alert alert-warning text-center">
+                            <i class="bi bi-lock"></i> 您没有权限查看数据看板
                         </div>
-                        <div>
-                            <span class="badge badge-priority-${i.priority.toLowerCase()}">${i.priority}</span>
-                            <span class="badge status-${i.status}">${getStatusName(i.status)}</span>
+                    `;
+                    return;
+                }
+
+                const data = res.data;
+
+                // 更新统计卡片
+                document.getElementById('dashTotalIssues').textContent = data.total_issues || 0;
+                document.getElementById('dashNewIssues').textContent = data.new_issues || 0;
+                document.getElementById('dashResolved').textContent = data.resolved_issues || 0;
+                document.getElementById('dashUnresolved').textContent = data.unresolved_issues || 0;
+                document.getElementById('dashP0P1').textContent = data.p0_p1_issues || 0;
+                document.getElementById('dashAvgTime').textContent = (data.avg_resolve_time_hours || 0).toFixed(1) + 'h';
+                document.getElementById('dashRepeated').textContent = data.repeated_issues || 0;
+                document.getElementById('dashAIAnalysis').textContent = data.ai_analysis_count || 0;
+                document.getElementById('dashAIAdopted').textContent = data.ai_adopted_count || 0;
+                document.getElementById('dashAIAdoptRate').textContent = (data.ai_adopt_rate || 0).toFixed(1) + '%';
+
+                // 显示统计日期
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                document.getElementById('statDateLabel').textContent = '统计日期: ' + yesterday.toISOString().slice(0, 10);
+
+                // 问题类型分布
+                if (data.issue_type_distribution && data.issue_type_distribution.length > 0) {
+                    document.getElementById('issueTypeDistribution').innerHTML = data.issue_type_distribution.map(t => `
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>${t.issue_type || '其他'}</span>
+                            <span>
+                                <span class="badge bg-primary">${t.count}</span>
+                                <small class="text-muted ms-2">${t.percent}</small>
+                            </span>
                         </div>
-                    </div>
-                </div>
-            `).join('') || '<p class="text-muted text-center py-4">暂无数据</p>';
-            document.getElementById('recentIssues').innerHTML = recentHtml;
+                    `).join('');
+                } else {
+                    document.getElementById('issueTypeDistribution').innerHTML = '<p class="text-muted text-center py-4">暂无数据</p>';
+                }
+
+                // 服务排行
+                if (data.service_issue_ranking && data.service_issue_ranking.length > 0) {
+                    const maxCount = Math.max(...data.service_issue_ranking.map(s => s.count));
+                    document.getElementById('serviceRanking').innerHTML = data.service_issue_ranking.map((s, idx) => `
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>
+                                <span class="badge bg-secondary me-2">${idx + 1}</span>
+                                ${s.service_name || '未知服务'}
+                            </span>
+                            <div class="d-flex align-items-center">
+                                <div class="progress" style="width: 100px; height: 8px; margin-right: 10px;">
+                                    <div class="progress-bar bg-danger" style="width: ${(s.count / maxCount * 100) || 0}%"></div>
+                                </div>
+                                <span class="badge bg-danger">${s.count}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    document.getElementById('serviceRanking').innerHTML = '<p class="text-muted text-center py-4">暂无数据</p>';
+                }
+
+                // 项目问题排行（仅系统管理员可见）
+                if (data.project_issue_ranking && data.project_issue_ranking.length > 0) {
+                    document.getElementById('projectRankingCard').style.display = 'block';
+                    const maxProjectCount = Math.max(...data.project_issue_ranking.map(p => p.count));
+                    document.getElementById('projectRanking').innerHTML = data.project_issue_ranking.map((p, idx) => `
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>
+                                <span class="badge bg-primary me-2">${idx + 1}</span>
+                                ${p.project_name || '未知项目'}
+                            </span>
+                            <div class="d-flex align-items-center">
+                                <div class="progress" style="width: 150px; height: 10px; margin-right: 10px;">
+                                    <div class="progress-bar bg-primary" style="width: ${(p.count / maxProjectCount * 100) || 0}%"></div>
+                                </div>
+                                <span class="badge bg-primary">${p.count}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    document.getElementById('projectRankingCard').style.display = 'none';
+                }
+
+                // 设置默认日期范围
+                const today = new Date();
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                document.getElementById('trendStartDate').value = weekAgo.toISOString().slice(0, 10);
+                document.getElementById('trendEndDate').value = today.toISOString().slice(0, 10);
+
+            } catch (err) {
+                console.error('Load dashboard error:', err);
+            }
+        }
+
+        // 加载趋势数据
+        async function loadTrendData() {
+            const startDate = document.getElementById('trendStartDate').value;
+            const endDate = document.getElementById('trendEndDate').value;
+
+            if (!startDate || !endDate) {
+                toast('请选择日期范围', 'warning');
+                return;
+            }
+
+            const res = await api('GET', `/dashboard/trend?start_date=${startDate}&end_date=${endDate}`);
+            if (res.code !== 0) {
+                toast(res.message, 'danger');
+                return;
+            }
+
+            const data = res.data;
+
+            // 简单的表格展示趋势
+            let html = '<table class="table table-sm table-bordered"><thead class="table-light"><tr><th>日期</th>';
+            data.series.forEach(s => html += `<th>${s.name}</th>`);
+            html += '</tr></thead><tbody>';
+
+            for (let i = 0; i < data.dates.length; i++) {
+                html += `<tr><td>${data.dates[i]}</td>`;
+                data.series.forEach(s => {
+                    html += `<td>${s.data[i] || 0}</td>`;
+                });
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+
+            document.getElementById('trendChart').innerHTML = html;
         }
 
         // 加载用户
@@ -3262,12 +3499,340 @@
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById('logOccurredAt').value = now.toISOString().slice(0, 16);
-            
+
             // 更新项目下拉框
             const projectOptions = projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
             document.getElementById('logProject').innerHTML = '<option value="">选择项目</option>' + projectOptions;
             document.getElementById('logService').innerHTML = '<option value="">选择服务</option>';
         });
+
+        // ========== 报告管理 ==========
+
+        let reportsPage = 1;
+
+        // 加载报告列表
+        async function loadReports() {
+            const reportType = document.getElementById('reportTypeFilter').value;
+            let url = `/reports?page=${reportsPage}&page_size=10`;
+            if (reportType) url += `&report_type=${reportType}`;
+
+            const res = await api('GET', url);
+            const list = res.data?.reports || [];
+            const total = res.data?.total || 0;
+
+            // 显示今日日报
+            await loadTodayReport();
+
+            // 渲染报告列表
+            document.getElementById('reportsList').innerHTML = list.length > 0 ? list.map(r => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5>${r.title}</h5>
+                                <p class="text-muted small mb-1">
+                                    类型: <span class="badge bg-${getReportTypeColor(r.report_type)}">${getReportTypeName(r.report_type)}</span>
+                                    ${r.report_date ? '日期: ' + r.report_date : ''}
+                                    ${r.report_week ? '周: ' + r.report_week : ''}
+                                    问题数: ${r.issue_count}
+                                    ${r.is_auto ? '<span class="badge bg-info ms-1">自动</span>' : ''}
+                                </p>
+                                <p class="mb-0">${r.summary || '暂无摘要'}</p>
+                            </div>
+                            <div>
+                                <span class="badge ${r.status === 'generated' ? 'bg-success' : 'bg-warning'}">${r.status === 'generated' ? '已生成' : '生成中'}</span>
+                                <button class="btn btn-sm btn-outline-primary ms-2" onclick="viewReport(${r.id})">查看</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('') : '<p class="text-muted text-center py-4">暂无报告</p>';
+
+            // 分页
+            const totalPages = Math.ceil(total / 10);
+            document.getElementById('reportsPagination').innerHTML = totalPages > 1 ? `
+                <nav>
+                    <ul class="pagination">
+                        <li class="page-item ${reportsPage === 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" onclick="reportsPage=Math.max(1,reportsPage-1);loadReports();return false;">上一页</a>
+                        </li>
+                        <li class="page-item active"><span class="page-link">${reportsPage}/${totalPages}</span></li>
+                        <li class="page-item ${reportsPage >= totalPages ? 'disabled' : ''}">
+                            <a class="page-link" href="#" onclick="reportsPage=Math.min(${totalPages},reportsPage+1);loadReports();return false;">下一页</a>
+                        </li>
+                    </ul>
+                </nav>
+            ` : '';
+        }
+
+        // 加载今日日报
+        async function loadTodayReport() {
+            const today = new Date().toISOString().slice(0, 10);
+            const res = await api('GET', `/reports/daily/${today}`);
+            if (res.code === 0 && res.data) {
+                const r = res.data;
+                const content = r.content ? JSON.parse(r.content) : null;
+                document.getElementById('todayReportContent').innerHTML = `
+                    <h6>${r.title}</h6>
+                    <div class="row mt-3">
+                        <div class="col-md-2 text-center">
+                            <div class="h3 text-primary">${content?.stats?.total_issues || 0}</div>
+                            <small>总告警</small>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <div class="h3 text-danger">${content?.stats?.p0_issues || 0}</div>
+                            <small>P0告警</small>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <div class="h3 text-warning">${content?.stats?.p1_issues || 0}</div>
+                            <small>P1告警</small>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <div class="h3 text-success">${content?.stats?.resolved_issues || 0}</div>
+                            <small>已解决</small>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <div class="h3 text-secondary">${content?.stats?.pending_issues || 0}</div>
+                            <small>待处理</small>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <strong>AI分析:</strong>
+                        <p class="mb-0">${content?.analysis || r.summary || '暂无分析'}</p>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="viewReport(${r.id})">查看详情</button>
+                `;
+            } else {
+                document.getElementById('todayReportContent').innerHTML = `
+                    <p class="text-muted text-center py-4">暂无今日日报</p>
+                    <button class="btn btn-primary" onclick="generateDailyReport()">立即生成</button>
+                `;
+            }
+        }
+
+        // 获取报告类型颜色
+        function getReportTypeColor(type) {
+            const colors = { daily: 'primary', weekly: 'success', incident: 'danger' };
+            return colors[type] || 'secondary';
+        }
+
+        // 获取报告类型名称
+        function getReportTypeName(type) {
+            const names = { daily: '日报', weekly: '周报', incident: '事件复盘' };
+            return names[type] || type;
+        }
+
+        // 显示生成日报模态框
+        function showGenerateDailyReportModal() {
+            const today = new Date().toISOString().slice(0, 10);
+            const date = prompt('请输入日期 (格式: YYYY-MM-DD，默认今天):', today);
+            if (date !== null) {
+                generateDailyReport(date);
+            }
+        }
+
+        // 生成日报
+        async function generateDailyReport(date) {
+            const body = {};
+            if (date) body.date = date;
+
+            const res = await api('POST', '/reports/daily', body);
+            if (res.code === 0) {
+                toast('日报生成成功');
+                loadReports();
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 显示生成周报模态框
+        function showGenerateWeeklyReportModal() {
+            // 自动计算本周一
+            const today = new Date();
+            const dayOfWeek = today.getDay() || 7; // 周日转为7
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - dayOfWeek + 1);
+            const thisWeekMonday = monday.toISOString().slice(0, 10);
+
+            // 计算上周一
+            const lastMonday = new Date(monday);
+            lastMonday.setDate(monday.getDate() - 7);
+            const lastWeekMonday = lastMonday.toISOString().slice(0, 10);
+
+            const weekStart = prompt(
+                `请输入周开始日期 (周一):\n\n本周: ${thisWeekMonday}\n上周: ${lastWeekMonday}`,
+                thisWeekMonday
+            );
+            if (weekStart !== null && weekStart) {
+                generateWeeklyReport(weekStart);
+            }
+        }
+
+        // 生成周报
+        async function generateWeeklyReport(weekStart) {
+            const res = await api('POST', '/reports/weekly', { week_start: weekStart });
+            if (res.code === 0) {
+                toast('周报生成成功');
+                loadReports();
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 显示事件复盘模态框
+        async function showGenerateIncidentReviewModal() {
+            // 先加载P0/P1问题列表
+            const res = await api('GET', '/issues?priority=P0&page_size=100');
+            const p0List = res.data?.list || [];
+            const res2 = await api('GET', '/issues?priority=P1&page_size=100');
+            const p1List = res2.data?.list || [];
+            const issues = [...p0List, ...p1List];
+
+            if (issues.length === 0) {
+                toast('暂无P0/P1问题可复盘', 'warning');
+                return;
+            }
+
+            const selected = prompt(
+                '请输入要复盘的问题ID，多个用逗号分隔:\n\n可用问题:\n' +
+                issues.slice(0, 10).map(i => `${i.id}: ${i.issue_no} (${i.priority}) - ${i.title}`).join('\n'),
+                ''
+            );
+
+            if (selected !== null && selected) {
+                const ids = selected.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+                if (ids.length > 0) {
+                    generateIncidentReview(ids);
+                }
+            }
+        }
+
+        // 生成事件复盘
+        async function generateIncidentReview(issueIDs) {
+            const res = await api('POST', '/reports/incident', { issue_ids: issueIDs });
+            if (res.code === 0) {
+                toast('事件复盘生成成功');
+                loadReports();
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 查看报告详情
+        async function viewReport(id) {
+            const res = await api('GET', `/reports/${id}`);
+            if (res.code === 0) {
+                const r = res.data;
+                const content = r.content ? JSON.parse(r.content) : null;
+
+                let html = `
+                    <div class="mb-3">
+                        <h5>${r.title}</h5>
+                        <p class="text-muted">
+                            类型: <span class="badge bg-${getReportTypeColor(r.report_type)}">${getReportTypeName(r.report_type)}</span>
+                            ${r.report_date ? ' 日期: ' + r.report_date : ''}
+                            ${r.report_week ? ' 周: ' + r.report_week : ''}
+                            <br>生成时间: ${formatDate(r.created_at)}
+                        </p>
+                    </div>
+                `;
+
+                if (r.report_type === 'daily' && content) {
+                    html += `
+                        <div class="alert alert-info">
+                            <strong>AI分析:</strong><br>${content.analysis || '暂无'}
+                        </div>
+                        <h6>统计概览</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-2"><div class="h5">${content.stats?.total_issues || 0}</div><small>总告警</small></div>
+                            <div class="col-md-2 text-danger"><div class="h5">${content.stats?.p0_issues || 0}</div><small>P0</small></div>
+                            <div class="col-md-2 text-warning"><div class="h5">${content.stats?.p1_issues || 0}</div><small>P1</small></div>
+                            <div class="col-md-2 text-success"><div class="h5">${content.stats?.resolved_issues || 0}</div><small>已解决</small></div>
+                        </div>
+                        <h6>告警列表 (${content.issues?.length || 0})</h6>
+                        <div class="list-group">
+                            ${(content.issues || []).map(i => `
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge badge-priority-${i.priority.toLowerCase()} me-2">${i.priority}</span>
+                                        <strong>${i.issue_no}</strong> - ${i.title}
+                                        <small class="text-muted d-block">${i.service_name || ''} | ${i.created_at}</small>
+                                    </div>
+                                    <span class="badge status-${i.status}">${getStatusName(i.status)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else if (r.report_type === 'weekly' && content) {
+                    html += `
+                        <div class="alert alert-info">
+                            <strong>AI分析:</strong><br>${content.analysis || '暂无'}
+                        </div>
+                        <h6>统计概览</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-2"><div class="h5">${content.stats?.total_issues || 0}</div><small>总告警</small></div>
+                            <div class="col-md-2 text-success"><div class="h5">${content.stats?.resolved_issues || 0}</div><small>已解决</small></div>
+                            <div class="col-md-2 text-danger"><div class="h5">${content.stats?.unresolved_issues || 0}</div><small>未解决</small></div>
+                            <div class="col-md-2 text-warning"><div class="h5">${content.stats?.critical_issues || 0}</div><small>P0/P1</small></div>
+                        </div>
+                        <h6>每日汇总 (${content.daily_summaries?.length || 0}天)</h6>
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>日期</th>
+                                    <th>总数</th>
+                                    <th class="text-danger">P0</th>
+                                    <th class="text-warning">P1</th>
+                                    <th class="text-info">P2</th>
+                                    <th class="text-success">已解决</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${(content.daily_summaries || []).map(d => `
+                                    <tr>
+                                        <td>${d.date}</td>
+                                        <td>${d.total_issues}</td>
+                                        <td class="text-danger">${d.p0_issues}</td>
+                                        <td class="text-warning">${d.p1_issues}</td>
+                                        <td class="text-info">${d.p2_issues}</td>
+                                        <td class="text-success">${d.resolved_issues}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else if (r.report_type === 'incident' && content) {
+                    html += `
+                        <div class="alert alert-warning">
+                            <strong>复盘摘要:</strong><br>${content.summary || '暂无'}
+                        </div>
+                        ${(content.reviews || []).map((rev, idx) => `
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <strong>${rev.issue_no}</strong> - ${rev.title}
+                                    <span class="badge badge-priority-${rev.priority.toLowerCase()} ms-2">${rev.priority}</span>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>发生时间:</strong> ${rev.incident_time} | <strong>持续时间:</strong> ${rev.duration}分钟</p>
+                                    <p><strong>根因:</strong> ${rev.root_cause || '暂无'}</p>
+                                    <p><strong>影响:</strong> ${rev.impact || '暂无'}</p>
+                                    <p><strong>解决方案:</strong> ${rev.resolution || '暂无'}</p>
+                                    ${rev.lessons_learned?.length ? `<p><strong>经验教训:</strong><ul>${rev.lessons_learned.map(l => `<li>${l}</li>`).join('')}</ul></p>` : ''}
+                                    ${rev.action_items?.length ? `<p><strong>后续行动:</strong><ul>${rev.action_items.map(a => `<li>${a}</li>`).join('')}</ul></p>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    `;
+                } else {
+                    html += `<p>${r.summary || '暂无内容'}</p>`;
+                }
+
+                document.getElementById('modalTitle').textContent = '报告详情';
+                document.getElementById('modalBody').innerHTML = `<div style="max-height: 60vh; overflow-y: auto;">${html}</div>`;
+                document.getElementById('modalFooter').innerHTML = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>';
+                new bootstrap.Modal(document.getElementById('modal')).show();
+            }
+        }
     </script>
 </body>
 </html>
