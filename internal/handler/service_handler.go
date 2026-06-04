@@ -83,6 +83,23 @@ func (h *ServiceHandler) ListServices(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// ListAllServices lists all services (not project-specific)
+func (h *ServiceHandler) ListAllServices(c *gin.Context) {
+	var req dto.ServiceListRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.BadRequest(c, "参数错误: "+err.Error())
+		return
+	}
+
+	result, err := h.serviceService.ListAllServices(&req)
+	if err != nil {
+		response.InternalError(c, err.Error())
+		return
+	}
+
+	response.Success(c, result)
+}
+
 // UpdateService updates a service
 func (h *ServiceHandler) UpdateService(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)

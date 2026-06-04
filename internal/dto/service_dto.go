@@ -8,38 +8,39 @@ import (
 
 // CreateServiceRequest 创建服务请求
 type CreateServiceRequest struct {
-	ProjectID   uint64 `json:"project_id" binding:"required"`
-	Name        string `json:"name" binding:"required,min=2,max=128"`
-	Code        string `json:"code" binding:"required,min=2,max=64"`
-	Description string `json:"description"`
-	ServiceType string `json:"service_type"`
-	OwnerID     uint64 `json:"owner_id"`
-	Language    string `json:"language"`
-	RepoURL     string `json:"repo_url"`
-	DeployEnv   string `json:"deploy_env"`
+	ProjectID   uint64  `json:"project_id"`
+	Name        string  `json:"name" binding:"required,min=2,max=128"`
+	Code        string  `json:"code" binding:"required,min=2,max=64"`
+	Description string  `json:"description"`
+	ServiceType string  `json:"service_type"`
+	OwnerID     *uint64 `json:"owner_id"`
+	Language    string  `json:"language"`
+	RepoURL     string  `json:"repo_url"`
+	DeployEnv   string  `json:"deploy_env"`
 }
 
 // UpdateServiceRequest 更新服务请求
 type UpdateServiceRequest struct {
-	Name        string `json:"name" binding:"omitempty,min=2,max=128"`
-	Description string `json:"description"`
-	ServiceType string `json:"service_type"`
-	OwnerID     uint64 `json:"owner_id"`
-	Language    string `json:"language"`
-	RepoURL     string `json:"repo_url"`
-	DeployEnv   string `json:"deploy_env"`
-	Status      *int8  `json:"status"`
+	Name        string  `json:"name" binding:"omitempty,min=2,max=128"`
+	Description string  `json:"description"`
+	ServiceType string  `json:"service_type"`
+	OwnerID     *uint64 `json:"owner_id"`
+	Language    string  `json:"language"`
+	RepoURL     string  `json:"repo_url"`
+	DeployEnv   string  `json:"deploy_env"`
+	Status      *int8   `json:"status"`
 }
 
 // ServiceInfo 服务信息
 type ServiceInfo struct {
 	ID          uint64    `json:"id"`
 	ProjectID   uint64    `json:"project_id"`
+	ProjectName string    `json:"project_name,omitempty"`
 	Name        string    `json:"name"`
 	Code        string    `json:"code"`
 	Description string    `json:"description"`
 	ServiceType string    `json:"service_type"`
-	OwnerID     uint64    `json:"owner_id"`
+	OwnerID     *uint64   `json:"owner_id"`
 	OwnerName   string    `json:"owner_name,omitempty"`
 	Language    string    `json:"language"`
 	RepoURL     string    `json:"repo_url"`
@@ -87,6 +88,9 @@ func ToServiceInfo(service *model.Service) *ServiceInfo {
 	}
 	if service.Owner != nil {
 		info.OwnerName = service.Owner.Username
+	}
+	if service.Project != nil {
+		info.ProjectName = service.Project.Name
 	}
 	return info
 }

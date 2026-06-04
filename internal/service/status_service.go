@@ -41,10 +41,11 @@ var statusTransitions = map[string][]string{
 }
 
 type StatusService struct {
-	issueRepo        *repository.IssueRepository
+	issueRepo         *repository.IssueRepository
 	projectMemberRepo *repository.ProjectMemberRepository
-	statusLogRepo    *repository.StatusLogRepository
-	operationLogRepo *repository.OperationLogRepository
+	statusLogRepo     *repository.StatusLogRepository
+	operationLogRepo  *repository.OperationLogRepository
+	userRepo          *repository.UserRepository
 }
 
 func NewStatusService(
@@ -52,12 +53,14 @@ func NewStatusService(
 	projectMemberRepo *repository.ProjectMemberRepository,
 	statusLogRepo *repository.StatusLogRepository,
 	operationLogRepo *repository.OperationLogRepository,
+	userRepo *repository.UserRepository,
 ) *StatusService {
 	return &StatusService{
-		issueRepo:        issueRepo,
+		issueRepo:         issueRepo,
 		projectMemberRepo: projectMemberRepo,
-		statusLogRepo:    statusLogRepo,
-		operationLogRepo: operationLogRepo,
+		statusLogRepo:     statusLogRepo,
+		operationLogRepo:  operationLogRepo,
+		userRepo:          userRepo,
 	}
 }
 
@@ -87,42 +90,19 @@ func (s *StatusService) canUserChangeStatus(issue *model.Issue, userID uint64, g
 		return true, nil
 	}
 
-	// Get user's project role
-	projectRole, err := s.projectMemberRepo.GetMemberRole(issue.ProjectID, userID)
-	if err != nil {
-		return false, err
+	// Get user's project role (empty string if not a member)
+	projectRole, _ := s.projectMemberRepo.GetMemberRole(issue.ProjectID, userID)
+
+	// If user is a project member (any role), they can change any status
+	if projectRole != "" {
+		return true, nil
 	}
 
-	// Check specific transitions
-	switch toStatus {
-	case constant.StatusPendingAssignment, constant.StatusProcessing:
-		// Project admin can assign/change to processing
-		return projectRole == constant.ProjectRoleAdmin || projectRole == constant.ProjectRoleOwner, nil
-
-	case constant.StatusPendingConfirmation:
-		// Assignee can mark as pending confirmation
-		if issue.AssigneeID != nil && *issue.AssigneeID == userID {
+	// Non-project-member: only creator can confirm resolution or reopen
+	if issue.CreatorID == userID {
+		if toStatus == constant.StatusResolved || toStatus == constant.StatusReopened {
 			return true, nil
 		}
-		return projectRole == constant.ProjectRoleAdmin || projectRole == constant.ProjectRoleOwner, nil
-
-	case constant.StatusResolved:
-		// Creator or project admin can confirm resolution
-		if issue.CreatorID == userID {
-			return true, nil
-		}
-		return projectRole == constant.ProjectRoleAdmin || projectRole == constant.ProjectRoleOwner, nil
-
-	case constant.StatusClosed:
-		// Project admin can close
-		return projectRole == constant.ProjectRoleAdmin || projectRole == constant.ProjectRoleOwner, nil
-
-	case constant.StatusReopened:
-		// Creator or project admin can reopen
-		if issue.CreatorID == userID {
-			return true, nil
-		}
-		return projectRole == constant.ProjectRoleAdmin || projectRole == constant.ProjectRoleOwner, nil
 	}
 
 	return false, nil
@@ -138,29 +118,39 @@ func (s *StatusService) AssignIssue(issueID, operatorID, assigneeID uint64, glob
 		return err
 	}
 
-	// Check permission
-	projectRole, err := s.projectMemberRepo.GetMemberRole(issue.ProjectID, operatorID)
-	if err != nil {
-		return errors.New("无权限操作")
+	// Check permission: system_admin or project member can assign
+	if globalRole != constant.RoleSystemAdmin {
+		projectRole, err := s.projectMemberRepo.GetMemberRole(issue.ProjectID, operatorID)
+		if err != nil || projectRole == "" {
+			return errors.New("无权限分配问题，只有项目成员可以分配")
+		}
 	}
 
-	if globalRole != constant.RoleSystemAdmin && projectRole != constant.ProjectRoleAdmin && projectRole != constant.ProjectRoleOwner {
-		return errors.New("无权限分配问题")
+	// Assignee must be a project member with developer role
+	assigneeProjectRole, err := s.projectMemberRepo.GetMemberRole(issue.ProjectID, assigneeID)
+	if err != nil || assigneeProjectRole == "" {
+		return errors.New("处理人不是该项目成员")
 	}
 
-	// Check if assignee is project member
-	isMember, err := s.projectMemberRepo.ExistsByProjectAndUser(issue.ProjectID, assigneeID)
+	// Check if assignee has developer role (global role)
+	assignee, err := s.userRepo.FindByID(assigneeID)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("处理人不存在")
+		}
 		return err
 	}
-	if !isMember {
-		return errors.New("处理人不是项目成员")
+	if assignee.Role != constant.RoleDeveloper {
+		return errors.New("只能分配给研发人员")
 	}
 
 	// Update assignee
 	if err := s.issueRepo.UpdateAssignee(issueID, assigneeID); err != nil {
 		return err
 	}
+
+	// Update the issue object's assignee_id for later use
+	issue.AssigneeID = &assigneeID
 
 	// If status is pending_analysis or pending_assignment, change to processing
 	if issue.Status == constant.StatusPendingAnalysis || issue.Status == constant.StatusPendingAssignment {

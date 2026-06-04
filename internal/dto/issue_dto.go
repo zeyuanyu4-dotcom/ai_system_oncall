@@ -192,6 +192,59 @@ type OperationLogInfo struct {
 	CreatedAt        time.Time `json:"created_at"`
 }
 
+// HistoryIssueQueryRequest 历史问题查询请求
+type HistoryIssueQueryRequest struct {
+	Keyword      string `form:"keyword"`
+	ProjectID    uint64 `form:"project_id"`
+	IssueType    string `form:"issue_type"`
+	Environment  string `form:"environment"`
+	Page         int    `form:"page" binding:"omitempty,min=1"`
+	PageSize     int    `form:"page_size" binding:"omitempty,min=1,max=100"`
+}
+
+// HistoryIssueQueryResponse 历史问题查询响应
+type HistoryIssueQueryResponse struct {
+	Total int64                   `json:"total"`
+	List  []*HistoryIssueInfo     `json:"list"`
+}
+
+// HistoryIssueInfo 历史问题信息（包含解决方案摘要）
+type HistoryIssueInfo struct {
+	ID            uint64     `json:"id"`
+	IssueNo       string     `json:"issue_no"`
+	Title         string     `json:"title"`
+	IssueType     string     `json:"issue_type"`
+	Priority      string     `json:"priority"`
+	Environment   string     `json:"environment"`
+	Status        string     `json:"status"`
+	RootCause     string     `json:"root_cause"`
+	Solution      string     `json:"solution"`
+	ResolvedAt    *time.Time `json:"resolved_at"`
+	CreatedAt     time.Time  `json:"created_at"`
+	ProjectName   string     `json:"project_name,omitempty"`
+	ServiceName   string     `json:"service_name,omitempty"`
+	CreatorName   string     `json:"creator_name,omitempty"`
+	SimilarityScore float64  `json:"similarity_score,omitempty"`
+}
+
+// SimilarIssueInfo 相似问题信息
+type SimilarIssueInfo struct {
+	ID              uint64     `json:"id"`
+	IssueNo         string     `json:"issue_no"`
+	Title           string     `json:"title"`
+	IssueType       string     `json:"issue_type"`
+	Status          string     `json:"status"`
+	RootCause       string     `json:"root_cause"`
+	Solution        string     `json:"solution"`
+	ResolvedAt      *time.Time `json:"resolved_at"`
+	SimilarityScore float64    `json:"similarity_score"`
+}
+
+// SimilarIssuesResponse 相似问题响应
+type SimilarIssuesResponse struct {
+	List []*SimilarIssueInfo `json:"list"`
+}
+
 // ToOperationLogInfo converts IssueOperationLog to OperationLogInfo
 func ToOperationLogInfo(log *model.IssueOperationLog) *OperationLogInfo {
 	if log == nil {

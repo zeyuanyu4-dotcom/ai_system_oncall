@@ -307,3 +307,220 @@ func (s *IssueService) GetOperationLogs(issueID uint64) ([]*dto.OperationLogInfo
 
 	return list, nil
 }
+
+// UpdateAIAnalysis updates the AI analysis result of an issue
+func (s *IssueService) UpdateAIAnalysis(id uint64, summary, analysis string) error {
+	return s.issueRepo.UpdateAIAnalysis(id, summary, analysis)
+}
+
+// SearchHistoryIssues 搜索历史问题（已解决或已关闭的问题）
+func (s *IssueService) SearchHistoryIssues(req *dto.HistoryIssueQueryRequest) (*dto.HistoryIssueQueryResponse, error) {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
+
+	issues, total, err := s.issueRepo.SearchHistoryIssues(
+		req.Keyword,
+		req.ProjectID,
+		req.IssueType,
+		req.Environment,
+		req.Page,
+		req.PageSize,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	list := make([]*dto.HistoryIssueInfo, 0, len(issues))
+	for _, issue := range issues {
+		info := toHistoryIssueInfo(&issue)
+		// 计算相似度分数
+		info.SimilarityScore = calculateSimilarityScore(req.Keyword, &issue)
+		list = append(list, info)
+	}
+
+	return &dto.HistoryIssueQueryResponse{
+		Total: total,
+		List:  list,
+	}, nil
+}
+
+// GetSimilarIssues 获取相似问题推荐
+func (s *IssueService) GetSimilarIssues(issueID uint64, limit int) (*dto.SimilarIssuesResponse, error) {
+	if limit <= 0 {
+		limit = 5
+	}
+
+	// 获取当前问题信息
+	issue, err := s.issueRepo.FindByID(issueID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("问题不存在")
+		}
+		return nil, err
+	}
+
+	// 查找相似问题
+	similarIssues, err := s.issueRepo.FindSimilarIssues(
+		issue.Title,
+		issue.ErrorMessage,
+		issue.LogExcerpt,
+		issueID,
+		limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	list := make([]*dto.SimilarIssueInfo, 0, len(similarIssues))
+	for _, si := range similarIssues {
+		info := &dto.SimilarIssueInfo{
+			ID:              si.ID,
+			IssueNo:         si.IssueNo,
+			Title:           si.Title,
+			IssueType:       si.IssueType,
+			Status:          si.Status,
+			RootCause:       si.RootCause,
+			Solution:        si.Solution,
+			ResolvedAt:      si.ResolvedAt,
+			SimilarityScore: calculateSimilarityScore(issue.Title+" "+issue.ErrorMessage, &si),
+		}
+		list = append(list, info)
+	}
+
+	return &dto.SimilarIssuesResponse{List: list}, nil
+}
+
+// toHistoryIssueInfo 转换为历史问题信息
+func toHistoryIssueInfo(issue *model.Issue) *dto.HistoryIssueInfo {
+	if issue == nil {
+		return nil
+	}
+	info := &dto.HistoryIssueInfo{
+		ID:          issue.ID,
+		IssueNo:     issue.IssueNo,
+		Title:       issue.Title,
+		IssueType:   issue.IssueType,
+		Priority:    issue.Priority,
+		Environment: issue.Environment,
+		Status:      issue.Status,
+		RootCause:   issue.RootCause,
+		Solution:    issue.Solution,
+		ResolvedAt:  issue.ResolvedAt,
+		CreatedAt:   issue.CreatedAt,
+	}
+	if issue.Project != nil {
+		info.ProjectName = issue.Project.Name
+	}
+	if issue.Service != nil {
+		info.ServiceName = issue.Service.Name
+	}
+	if issue.Creator != nil {
+		info.CreatorName = issue.Creator.Username
+	}
+	return info
+}
+
+// calculateSimilarityScore 计算相似度分数（简化版本：基于关键词匹配）
+func calculateSimilarityScore(keyword string, issue *model.Issue) float64 {
+	if keyword == "" || issue == nil {
+		return 0
+	}
+
+	// 收集问题文本
+	texts := []string{issue.Title, issue.Description, issue.ErrorMessage, issue.LogExcerpt, issue.RootCause, issue.Solution}
+	combinedText := ""
+	for _, t := range texts {
+		if t != "" {
+			combinedText += t + " "
+		}
+	}
+
+	// 简单计算：统计关键词出现次数
+	score := 0.0
+	keywords := splitKeywords(keyword)
+	for _, kw := range keywords {
+		if containsIgnoreCase(combinedText, kw) {
+			score += 1.0
+		}
+	}
+
+	// 归一化到 0-1 范围
+	if len(keywords) > 0 {
+		score = score / float64(len(keywords))
+	}
+
+	return score
+}
+
+// splitKeywords 分割关键词
+func splitKeywords(text string) []string {
+	delimiters := " \t\n\r,.;:!?()[]{}/\\\"'<>|@#$%^&*+=~`"
+	words := make([]string, 0)
+	start := 0
+
+	for i, c := range text {
+		isDelimiter := false
+		for _, d := range delimiters {
+			if rune(d) == c {
+				isDelimiter = true
+				break
+			}
+		}
+		if isDelimiter {
+			if i > start {
+				word := text[start:i]
+				if len(word) >= 2 {
+					words = append(words, word)
+				}
+			}
+			start = i + 1
+		}
+	}
+	if start < len(text) {
+		word := text[start:]
+		if len(word) >= 2 {
+			words = append(words, word)
+		}
+	}
+
+	return words
+}
+
+// containsIgnoreCase 检查文本是否包含关键词（忽略大小写）
+func containsIgnoreCase(text, keyword string) bool {
+	// 简单实现：转换为小写比较
+	textLower := make([]byte, len(text))
+	keywordLower := make([]byte, len(keyword))
+
+	for i, c := range text {
+		if c >= 'A' && c <= 'Z' {
+			textLower[i] = byte(c + 32)
+		} else {
+			textLower[i] = byte(c)
+		}
+	}
+
+	for i, c := range keyword {
+		if c >= 'A' && c <= 'Z' {
+			keywordLower[i] = byte(c + 32)
+		} else {
+			keywordLower[i] = byte(c)
+		}
+	}
+
+	return contains(string(textLower), string(keywordLower))
+}
+
+// contains 检查字符串包含
+func contains(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
+}

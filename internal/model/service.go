@@ -14,7 +14,7 @@ type Service struct {
 	Code         string         `gorm:"type:varchar(64);not null;uniqueIndex:idx_project_code" json:"code"`
 	Description  string         `gorm:"type:text" json:"description"`
 	ServiceType  string         `gorm:"type:varchar(32);not null;default:backend" json:"service_type"`
-	OwnerID      uint64         `gorm:"index" json:"owner_id"`
+	OwnerID      *uint64        `gorm:"index" json:"owner_id"`
 	Language     string         `gorm:"type:varchar(32)" json:"language"`
 	RepoURL      string         `gorm:"type:varchar(255)" json:"repo_url"`
 	DeployEnv    string         `gorm:"type:varchar(64)" json:"deploy_env"`

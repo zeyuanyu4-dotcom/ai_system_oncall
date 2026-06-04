@@ -107,6 +107,32 @@ func (s *ServiceService) ListServices(req *dto.ServiceListRequest) (*dto.Service
 	}, nil
 }
 
+// ListAllServices lists all services (not project-specific)
+func (s *ServiceService) ListAllServices(req *dto.ServiceListRequest) (*dto.ServiceListResponse, error) {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
+
+	// ProjectID = 0 means list all services
+	services, total, err := s.serviceRepo.List(req.Page, req.PageSize, 0, req.ServiceType, req.Keyword, req.Status)
+	if err != nil {
+		return nil, err
+	}
+
+	list := make([]*dto.ServiceInfo, 0, len(services))
+	for _, service := range services {
+		list = append(list, dto.ToServiceInfo(&service))
+	}
+
+	return &dto.ServiceListResponse{
+		Total: total,
+		List:  list,
+	}, nil
+}
+
 // UpdateService updates a service
 func (s *ServiceService) UpdateService(id uint64, req *dto.UpdateServiceRequest) (*dto.ServiceInfo, error) {
 	service, err := s.serviceRepo.FindByID(id)
@@ -126,7 +152,7 @@ func (s *ServiceService) UpdateService(id uint64, req *dto.UpdateServiceRequest)
 	if req.ServiceType != "" {
 		service.ServiceType = req.ServiceType
 	}
-	if req.OwnerID > 0 {
+	if req.OwnerID != nil {
 		service.OwnerID = req.OwnerID
 	}
 	if req.Language != "" {

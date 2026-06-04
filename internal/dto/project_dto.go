@@ -8,9 +8,16 @@ import (
 
 // CreateProjectRequest 创建项目请求
 type CreateProjectRequest struct {
-	Name        string `json:"name" binding:"required,min=2,max=128"`
-	Code        string `json:"code" binding:"required,min=2,max=64"`
-	Description string `json:"description"`
+	Name        string               `json:"name" binding:"required,min=2,max=128"`
+	Code        string               `json:"code" binding:"required,min=2,max=64"`
+	Description string               `json:"description"`
+	Members     []ProjectMemberInput `json:"members"`
+}
+
+// ProjectMemberInput 项目成员输入
+type ProjectMemberInput struct {
+	UserID      uint64 `json:"user_id" binding:"required"`
+	ProjectRole string `json:"project_role" binding:"required,oneof=developer tester"`
 }
 
 // UpdateProjectRequest 更新项目请求
@@ -87,6 +94,7 @@ type MemberInfo struct {
 	UserID      uint64    `json:"user_id"`
 	Username    string    `json:"username"`
 	Email       string    `json:"email"`
+	GlobalRole  string    `json:"global_role"`
 	ProjectRole string    `json:"project_role"`
 	JoinedAt    time.Time `json:"joined_at"`
 }
@@ -111,6 +119,7 @@ func ToMemberInfo(member *model.ProjectMember) *MemberInfo {
 	if member.User != nil {
 		info.Username = member.User.Username
 		info.Email = member.User.Email
+		info.GlobalRole = member.User.Role
 	}
 	return info
 }

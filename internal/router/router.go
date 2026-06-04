@@ -1,6 +1,8 @@
 package router
 
 import (
+	"ai_system_oncall/internal/client"
+	"ai_system_oncall/internal/config"
 	"ai_system_oncall/internal/database"
 	"ai_system_oncall/internal/handler"
 	"ai_system_oncall/internal/middleware"
@@ -34,6 +36,11 @@ func SetupRouter() *gin.Engine {
 	commentRepo := repository.NewCommentRepository(database.GetDB())
 	statusLogRepo := repository.NewStatusLogRepository(database.GetDB())
 	operationLogRepo := repository.NewOperationLogRepository(database.GetDB())
+	simulatedLogRepo := repository.NewSimulatedLogRepository(database.GetDB())
+	knowledgeDocRepo := repository.NewKnowledgeDocRepository(database.GetDB())
+	knowledgeDocVersionRepo := repository.NewKnowledgeDocVersionRepository(database.GetDB())
+	knowledgeDocAttachmentRepo := repository.NewKnowledgeDocAttachmentRepository(database.GetDB())
+	aiAnalysisTaskRepo := repository.NewAIAnalysisTaskRepository(database.GetDB())
 
 	// Initialize services
 	authService := service.NewAuthService(userRepo)
@@ -44,8 +51,18 @@ func SetupRouter() *gin.Engine {
 	serviceAPIService := service.NewServiceAPIService(serviceAPIRepo, serviceRepo)
 	serviceDependencyService := service.NewServiceDependencyService(serviceDependencyRepo, serviceRepo)
 	issueService := service.NewIssueService(issueRepo, projectRepo, projectMemberRepo, serviceRepo, statusLogRepo, operationLogRepo)
-	statusService := service.NewStatusService(issueRepo, projectMemberRepo, statusLogRepo, operationLogRepo)
+	statusService := service.NewStatusService(issueRepo, projectMemberRepo, statusLogRepo, operationLogRepo, userRepo)
 	commentService := service.NewCommentService(commentRepo, issueRepo, operationLogRepo)
+	simulatedLogService := service.NewSimulatedLogService(simulatedLogRepo, projectRepo, serviceRepo, issueRepo, projectMemberRepo)
+	knowledgeDocService := service.NewKnowledgeDocService(knowledgeDocRepo, knowledgeDocVersionRepo, projectRepo, serviceRepo)
+	knowledgeDocAttachmentService := service.NewKnowledgeDocAttachmentService(knowledgeDocAttachmentRepo, knowledgeDocRepo)
+
+	// Initialize AI client
+	var aiClient *client.AIClient
+	if config.GetConfig() != nil && config.GetConfig().AI.Enabled {
+		aiClient = client.NewAIClient(&config.GetConfig().AI)
+	}
+	aiAnalysisTaskService := service.NewAIAnalysisTaskService(aiAnalysisTaskRepo, issueRepo, aiClient)
 
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService)
@@ -58,6 +75,11 @@ func SetupRouter() *gin.Engine {
 	issueHandler := handler.NewIssueHandler(issueService)
 	statusHandler := handler.NewStatusHandler(statusService)
 	commentHandler := handler.NewCommentHandler(commentService)
+	simulatedLogHandler := handler.NewSimulatedLogHandler(simulatedLogService)
+	knowledgeDocHandler := handler.NewKnowledgeDocHandler(knowledgeDocService)
+	knowledgeDocAttachmentHandler := handler.NewKnowledgeDocAttachmentHandler(knowledgeDocAttachmentService)
+	aiHandler := handler.NewAIHandler(issueService, aiClient)
+	aiTaskHandler := handler.NewAIAnalysisTaskHandler(aiAnalysisTaskService)
 
 	// Public routes (no auth required)
 	public := r.Group("/api")
@@ -97,6 +119,8 @@ func SetupRouter() *gin.Engine {
 		// Services (under project)
 		protected.POST("/projects/:id/services", serviceHandler.CreateService)
 		protected.GET("/projects/:id/services", serviceHandler.ListServices)
+		// Services (all)
+		protected.GET("/services", serviceHandler.ListAllServices)
 		protected.GET("/services/:id", serviceHandler.GetService)
 		protected.PUT("/services/:id", serviceHandler.UpdateService)
 		protected.DELETE("/services/:id", serviceHandler.DeleteService)
@@ -131,6 +155,55 @@ func SetupRouter() *gin.Engine {
 
 		// Operation Logs
 		protected.GET("/issues/:id/operation-logs", issueHandler.GetOperationLogs)
+
+		// History Issue Query (历史问题查询)
+		protected.GET("/issues/history/search", issueHandler.SearchHistoryIssues)
+		protected.GET("/issues/:id/similar", issueHandler.GetSimilarIssues)
+
+		// Simulated Logs (模拟日志)
+		protected.POST("/logs", simulatedLogHandler.CreateLog)
+		protected.POST("/logs/batch", simulatedLogHandler.BatchCreateLogs)
+		protected.GET("/logs", simulatedLogHandler.ListLogs)
+		protected.GET("/logs/:id", simulatedLogHandler.GetLog)
+		protected.GET("/logs/trace/:trace_id", simulatedLogHandler.GetLogsByTraceID)
+		protected.GET("/logs/issue/:id", simulatedLogHandler.GetLogsByIssue)
+		protected.PATCH("/logs/:id/link-issue", simulatedLogHandler.LinkIssue)
+		protected.DELETE("/logs/:id", simulatedLogHandler.DeleteLog)
+		// Logs by service
+		protected.GET("/services/:id/logs", simulatedLogHandler.GetLogsByService)
+
+		// Knowledge Documents
+		protected.POST("/knowledge-docs", knowledgeDocHandler.CreateDocument)
+		protected.GET("/knowledge-docs", knowledgeDocHandler.ListDocuments)
+		protected.GET("/knowledge-docs/search", knowledgeDocHandler.SearchDocuments)
+		protected.GET("/knowledge-docs/by-type/:type", knowledgeDocHandler.GetDocumentsByType)
+		protected.GET("/knowledge-docs/:id", knowledgeDocHandler.GetDocument)
+		protected.PUT("/knowledge-docs/:id", knowledgeDocHandler.UpdateDocument)
+		protected.DELETE("/knowledge-docs/:id", knowledgeDocHandler.DeleteDocument)
+		protected.PUT("/knowledge-docs/:id/vector-status", knowledgeDocHandler.UpdateVectorStatus)
+		protected.POST("/knowledge-docs/:id/vectorize", knowledgeDocHandler.TriggerVectorization)
+		protected.GET("/knowledge-docs/:id/versions", knowledgeDocHandler.GetVersions)
+		// Knowledge Documents by project
+		protected.GET("/projects/:id/knowledge-docs", knowledgeDocHandler.GetDocumentsByProject)
+		// Knowledge Documents by service
+		protected.GET("/services/:id/knowledge-docs", knowledgeDocHandler.GetDocumentsByService)
+		// Knowledge Document Attachments
+		protected.POST("/knowledge-docs/:id/attachments", knowledgeDocAttachmentHandler.UploadAttachment)
+		protected.GET("/knowledge-docs/:id/attachments", knowledgeDocAttachmentHandler.GetAttachments)
+		protected.GET("/knowledge-docs/:id/attachments/:aid", knowledgeDocAttachmentHandler.DownloadAttachment)
+		protected.GET("/knowledge-docs/:id/attachments/:aid/content", knowledgeDocAttachmentHandler.GetAttachmentContent)
+		protected.DELETE("/knowledge-docs/:id/attachments/:aid", knowledgeDocAttachmentHandler.DeleteAttachment)
+		protected.POST("/knowledge-docs/parse-attachment", knowledgeDocAttachmentHandler.ParseAttachmentToContent)
+
+		// AI Analysis
+		protected.POST("/issues/:id/ai-analysis", aiHandler.AnalyzeIssue)
+		protected.GET("/ai/status", aiHandler.AIAnalysisStatus)
+
+		// AI Agent Analysis Tasks
+		protected.POST("/issues/:id/agent-tasks", aiTaskHandler.CreateTask)
+		protected.GET("/issues/:id/agent-tasks", aiTaskHandler.GetIssueTasks)
+		protected.GET("/agent-tasks/:task_id", aiTaskHandler.GetTask)
+		protected.POST("/agent-tasks/:task_id/cancel", aiTaskHandler.CancelTask)
 	}
 
 	return r

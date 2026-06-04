@@ -149,7 +149,10 @@ func (h *ProjectMemberHandler) ListMembers(c *gin.Context) {
 		return
 	}
 
-	result, err := h.memberService.ListMembers(projectID)
+	// Get optional global_role filter
+	globalRoleFilter := c.Query("global_role")
+
+	result, err := h.memberService.ListMembers(projectID, globalRoleFilter)
 	if err != nil {
 		response.InternalError(c, err.Error())
 		return

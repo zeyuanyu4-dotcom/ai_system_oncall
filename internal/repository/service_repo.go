@@ -81,7 +81,7 @@ func (r *ServiceRepository) List(page, pageSize int, projectID uint64, serviceTy
 	}
 
 	offset := (page - 1) * pageSize
-	if err := query.Preload("Owner").Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&services).Error; err != nil {
+	if err := query.Preload("Owner").Preload("Project").Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&services).Error; err != nil {
 		return nil, 0, err
 	}
 

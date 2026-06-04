@@ -58,6 +58,32 @@ func (s *ProjectService) CreateProject(creatorID uint64, req *dto.CreateProjectR
 	}
 	_ = s.projectMemberRepo.Create(member)
 
+	// Add additional members from request
+	for _, m := range req.Members {
+		// Validate user exists and has developer or tester role
+		user, err := s.userRepo.FindByID(m.UserID)
+		if err != nil {
+			continue // Skip invalid users
+		}
+		// Only allow adding developer or tester role users
+		if user.Role != constant.RoleDeveloper && user.Role != constant.RoleTester {
+			continue
+		}
+
+		// Check if already a member
+		exists, _ := s.projectMemberRepo.ExistsByProjectAndUser(project.ID, m.UserID)
+		if exists {
+			continue
+		}
+
+		member := &model.ProjectMember{
+			ProjectID:   project.ID,
+			UserID:      m.UserID,
+			ProjectRole: m.ProjectRole,
+		}
+		_ = s.projectMemberRepo.Create(member)
+	}
+
 	return dto.ToProjectInfo(project), nil
 }
 

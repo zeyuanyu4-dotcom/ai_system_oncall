@@ -78,7 +78,7 @@ func (s *ProjectMemberService) AddMember(projectID, operatorID uint64, req *dto.
 }
 
 // ListMembers lists members of a project
-func (s *ProjectMemberService) ListMembers(projectID uint64) (*dto.MemberListResponse, error) {
+func (s *ProjectMemberService) ListMembers(projectID uint64, globalRoleFilter string) (*dto.MemberListResponse, error) {
 	members, err := s.projectMemberRepo.ListByProjectID(projectID)
 	if err != nil {
 		return nil, err
@@ -86,7 +86,14 @@ func (s *ProjectMemberService) ListMembers(projectID uint64) (*dto.MemberListRes
 
 	list := make([]*dto.MemberInfo, 0, len(members))
 	for _, member := range members {
-		list = append(list, dto.ToMemberInfo(&member))
+		memberInfo := dto.ToMemberInfo(&member)
+		// Filter by global role if specified
+		if globalRoleFilter != "" {
+			if memberInfo.GlobalRole != globalRoleFilter {
+				continue
+			}
+		}
+		list = append(list, memberInfo)
 	}
 
 	return &dto.MemberListResponse{

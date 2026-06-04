@@ -20,3 +20,8 @@ log:
   max_backups: 5      # number of backup files
   max_age: 30         # days to keep
   compress: true
+
+ai:
+  enabled: true
+  base_url: http://127.0.0.1:8001
+  timeout: 60  # seconds

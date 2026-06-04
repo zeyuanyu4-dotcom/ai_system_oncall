@@ -4,484 +4,1429 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>智能 OnCall 问题处理平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #f5f7fa;
-            color: #333;
         }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+        .sidebar {
+            width: 250px;
+            background: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        .sidebar-header {
             padding: 20px;
+            border-bottom: 1px solid #eee;
         }
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 0;
-            margin-bottom: 30px;
+        .sidebar-menu {
+            padding: 10px 0;
         }
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-        .header .subtitle {
-            opacity: 0.8;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-        /* Login */
-        .login-container {
-            max-width: 400px;
-            margin: 100px auto;
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-        }
-        .login-container h2 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #555;
-        }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            width: 100%;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-        .btn-success {
-            background: #27ae60;
-            color: white;
-        }
-        /* Navigation */
-        .nav {
+        .sidebar-menu a {
             display: flex;
-            gap: 20px;
-            background: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .nav a {
+            align-items: center;
+            padding: 12px 20px;
             color: #666;
             text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 5px;
             transition: all 0.3s;
         }
-        .nav a:hover, .nav a.active {
-            background: #667eea;
-            color: white;
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background: #f0f4ff;
+            color: var(--primary-color);
+            border-right: 3px solid var(--primary-color);
         }
-        .user-info {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .sidebar-menu a i {
+            margin-right: 10px;
+            width: 20px;
         }
-        .user-info span {
-            color: #666;
-        }
-        /* Cards */
-        .card {
-            background: white;
-            border-radius: 10px;
+        .main-content {
+            margin-left: 250px;
             padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            min-height: 100vh;
         }
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        .card-header h3 {
-            font-size: 18px;
-            color: #333;
-        }
-        /* Table */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #555;
-        }
-        tr:hover {
-            background: #f8f9fa;
-        }
-        /* Status Badge */
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .badge-pending { background: #fff3cd; color: #856404; }
-        .badge-processing { background: #cce5ff; color: #004085; }
-        .badge-resolved { background: #d4edda; color: #155724; }
-        .badge-closed { background: #e2e3e5; color: #383d41; }
-        .badge-p0 { background: #f8d7da; color: #721c24; }
-        .badge-p1 { background: #fff3cd; color: #856404; }
-        .badge-p2 { background: #cce5ff; color: #004085; }
-        .badge-p3 { background: #d4edda; color: #155724; }
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-        }
-        .modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 500px;
-            max-width: 90%;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .modal-header h3 {
-            font-size: 18px;
-        }
-        .close-btn {
-            background: none;
+        .card {
             border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #999;
-        }
-        /* Stats */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 10px;
         }
         .stat-card {
             background: white;
-            padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-card .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 24px;
+            color: white;
         }
         .stat-card .value {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
-            color: #667eea;
+            color: #333;
         }
         .stat-card .label {
             color: #888;
-            margin-top: 5px;
+            font-size: 14px;
         }
-        /* Toast */
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 6px;
-            color: white;
-            font-weight: 500;
-            z-index: 2000;
-            animation: slideIn 0.3s ease;
+        .badge-priority-p0 { background: #dc3545; }
+        .badge-priority-p1 { background: #fd7e14; }
+        .badge-priority-p2 { background: #0dcaf0; color: #000; }
+        .badge-priority-p3 { background: #198754; }
+        
+        .status-pending_analysis { background: #fff3cd; color: #856404; }
+        .status-pending_assignment { background: #ffe5d0; color: #8b4513; }
+        .status-processing { background: #cce5ff; color: #004085; }
+        .status-pending_confirmation { background: #d4edda; color: #155724; }
+        .status-resolved { background: #d1ecf1; color: #0c5460; }
+        .status-closed { background: #e2e3e5; color: #383d41; }
+        .status-reopened { background: #f8d7da; color: #721c24; }
+        
+        .issue-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ddd;
+            cursor: pointer;
+            transition: all 0.3s;
         }
-        .toast-success { background: #27ae60; }
-        .toast-error { background: #e74c3c; }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        .issue-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        /* Hidden */
+        .issue-card.priority-P0 { border-left-color: #dc3545; }
+        .issue-card.priority-P1 { border-left-color: #fd7e14; }
+        .issue-card.priority-P2 { border-left-color: #0dcaf0; }
+        .issue-card.priority-P3 { border-left-color: #198754; }
+        
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #ddd;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 20px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary-color);
+        }
+        
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        
         .hidden { display: none !important; }
+        
+        .avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
-    <!-- Login Page -->
+    <!-- 登录页面 -->
     <div id="loginPage" class="login-container">
-        <h2>智能 OnCall 平台</h2>
-        <div class="form-group">
-            <label>邮箱</label>
-            <input type="email" id="loginEmail" value="test@test.com" placeholder="请输入邮箱">
+        <div class="login-box">
+            <div class="text-center mb-4">
+                <i class="bi bi-hdd-stack" style="font-size: 48px; color: #667eea;"></i>
+                <h3 class="mt-3">智能 OnCall 平台</h3>
+                <p class="text-muted">问题处理与研发协同</p>
+            </div>
+            
+            <ul class="nav nav-pills nav-fill mb-4" id="authTabs">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="pill" href="#login">登录</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="pill" href="#register">注册</a>
+                </li>
+            </ul>
+            
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="login">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="loginEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" id="loginPassword" required>
+                        </div>
+                        <button type="button" class="btn btn-primary w-100" onclick="handleLoginClick()">登录</button>
+                    </form>
+                </div>
+                <div class="tab-pane fade" id="register">
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="regUsername" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="regEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" id="regPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">角色</label>
+                            <select class="form-control" id="regRole">
+                                <option value="normal_user">普通用户</option>
+                                <option value="developer">研发人员</option>
+                                <option value="tester">测试人员</option>
+                                <option value="project_admin">项目管理员</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-primary w-100" onclick="handleRegisterClick()">注册</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <small class="text-muted">
+                    演示账号：<br>
+                    admin@oncall.com / admin123 (系统管理员)<br>
+                    zhangsan@oncall.com / 123456 (项目管理员)<br>
+                    lisi@oncall.com / 123456 (研发)<br>
+                    wangwu@oncall.com / 123456 (测试)
+                </small>
+            </div>
         </div>
-        <div class="form-group">
-            <label>密码</label>
-            <input type="password" id="loginPassword" value="123456" placeholder="请输入密码">
-        </div>
-        <button class="btn btn-primary" onclick="login()">登 录</button>
-        <p style="text-align: center; margin-top: 20px; color: #888; font-size: 13px;">
-            测试账号: test@test.com / 123456
-        </p>
     </div>
 
-    <!-- Main Page -->
+    <!-- 主页面 -->
     <div id="mainPage" class="hidden">
-        <div class="header">
-            <div class="container">
-                <h1>智能 OnCall 问题处理与研发协同平台</h1>
-                <div class="subtitle">Intelligent OnCall Issue Management Platform</div>
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h5 class="mb-0"><i class="bi bi-hdd-stack me-2"></i>OnCall 平台</h5>
+                <small class="text-muted">v1.0.0</small>
+            </div>
+            <div class="sidebar-menu" id="sidebarMenu">
+                <a href="#" onclick="showPage('dashboard')" class="active" data-page="dashboard">
+                    <i class="bi bi-speedometer2"></i>仪表盘
+                </a>
+                <a href="#" onclick="showPage('users')" data-page="users" data-role="system_admin,project_admin">
+                    <i class="bi bi-people"></i>用户管理
+                </a>
+                <a href="#" onclick="showPage('projects')" data-page="projects">
+                    <i class="bi bi-folder"></i>项目管理
+                </a>
+                <a href="#" onclick="showPage('services')" data-page="services">
+                    <i class="bi bi-gear"></i>服务管理
+                </a>
+                <a href="#" onclick="showPage('issues')" data-page="issues">
+                    <i class="bi bi-exclamation-triangle"></i>问题列表
+                </a>
+                <a href="#" onclick="showPage('logs')" data-page="logs">
+                    <i class="bi bi-journal-text"></i>日志管理
+                </a>
+                <a href="#" onclick="showPage('knowledgeDocs')" data-page="knowledgeDocs">
+                    <i class="bi bi-book"></i>知识库
+                </a>
+                <a href="#" onclick="showPage('historyIssues')" data-page="historyIssues">
+                    <i class="bi bi-clock-history"></i>历史问题查询
+                </a>
+            </div>
+            <div class="position-absolute bottom-0 w-100 p-3 border-top">
+                <div class="d-flex align-items-center">
+                    <div class="avatar me-2" id="userAvatar">A</div>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold" id="userName">-</div>
+                        <small class="text-muted" id="userRole">-</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="logout()">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div class="container">
-            <div class="nav">
-                <a href="#" class="active" onclick="showSection('dashboard')">仪表盘</a>
-                <a href="#" onclick="showSection('projects')">项目管理</a>
-                <a href="#" onclick="showSection('issues')">问题列表</a>
-                <div class="user-info">
-                    <span id="currentUser">-</span>
-                    <button class="btn btn-secondary" onclick="logout()">退出</button>
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 仪表盘 -->
+            <div id="dashboardPage">
+                <h4 class="mb-4">仪表盘</h4>
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="icon gradient-bg"><i class="bi bi-folder"></i></div>
+                            <div class="value" id="statProjects">0</div>
+                            <div class="label">项目数量</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="icon" style="background: #28a745;"><i class="bi bi-gear"></i></div>
+                            <div class="value" id="statServices">0</div>
+                            <div class="label">服务数量</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="icon" style="background: #dc3545;"><i class="bi bi-exclamation-triangle"></i></div>
+                            <div class="value" id="statIssues">0</div>
+                            <div class="label">问题总数</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="icon" style="background: #ffc107;"><i class="bi bi-hourglass-split"></i></div>
+                            <div class="value" id="statPending">0</div>
+                            <div class="label">待处理</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card p-4">
+                            <h5 class="mb-3">最近问题</h5>
+                            <div id="recentIssues">
+                                <p class="text-muted text-center py-4">暂无数据</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card p-4">
+                            <h5 class="mb-3">问题状态分布</h5>
+                            <div id="statusChart">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>待分析</span>
+                                    <span class="badge bg-secondary" id="chartPendingAnalysis">0</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>处理中</span>
+                                    <span class="badge bg-info" id="chartProcessing">0</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>已解决</span>
+                                    <span class="badge bg-success" id="chartResolved">0</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>已关闭</span>
+                                    <span class="badge bg-secondary" id="chartClosed">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Dashboard Section -->
-            <div id="dashboardSection">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="value" id="statProjects">0</div>
-                        <div class="label">项目数量</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="value" id="statIssues">0</div>
-                        <div class="label">问题总数</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="value" id="statPending">0</div>
-                        <div class="label">待处理</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="value" id="statResolved">0</div>
-                        <div class="label">已解决</div>
+            <!-- 知识库文档页面 -->
+            <div id="knowledgeDocsPage" class="hidden">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>知识库</h4>
+                    <button class="btn btn-primary" onclick="showKnowledgeDocModal()">
+                        <i class="bi bi-plus"></i> 创建文档
+                    </button>
+                </div>
+                
+                <!-- 筛选区域 -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-2">
+                                <select class="form-control" id="kdProjectFilter" onchange="loadKnowledgeDocs()">
+                                    <option value="">全部项目</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-control" id="kdServiceFilter" onchange="loadKnowledgeDocs()">
+                                    <option value="">全部服务</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-control" id="kdTypeFilter" onchange="loadKnowledgeDocs()">
+                                    <option value="">全部类型</option>
+                                    <option value="troubleshooting_manual">故障排查手册</option>
+                                    <option value="faq">常见问题处理方案</option>
+                                    <option value="deployment_guide">服务部署说明</option>
+                                    <option value="api_doc">接口说明</option>
+                                    <option value="db_doc">数据库说明</option>
+                                    <option value="release_process">发布流程规范</option>
+                                    <option value="incident_review">历史故障复盘</option>
+                                    <option value="environment_guide">环境使用说明</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="kdSearchKeyword" placeholder="搜索文档标题或内容...">
+                                    <button class="btn btn-outline-secondary" onclick="loadKnowledgeDocs()">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-outline-primary w-100" onclick="loadKnowledgeDocs()">刷新</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
+                
+                <!-- 文档列表 -->
                 <div class="card">
-                    <div class="card-header">
-                        <h3>最近问题</h3>
+                    <div class="card-body">
+                        <div id="kdList" class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>标题</th>
+                                        <th>类型</th>
+                                        <th>项目</th>
+                                        <th>服务</th>
+                                        <th>创建人</th>
+                                        <th>版本</th>
+                                        <th>向量化</th>
+                                        <th>更新时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="kdTableBody">
+                                    <tr><td colspan="9" class="text-center text-muted py-4">加载中...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- 分页 -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div id="kdPaginationInfo">共 0 条</div>
+                            <nav><ul class="pagination mb-0" id="kdPagination"></ul></nav>
+                        </div>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>问题编号</th>
-                                <th>标题</th>
-                                <th>项目</th>
-                                <th>优先级</th>
-                                <th>状态</th>
-                                <th>创建时间</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recentIssuesTable">
-                        </tbody>
-                    </table>
                 </div>
             </div>
 
-            <!-- Projects Section -->
-            <div id="projectsSection" class="hidden">
+            <!-- 用户管理 -->
+            <div id="usersPage" class="hidden">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>用户管理</h4>
+                </div>
                 <div class="card">
-                    <div class="card-header">
-                        <h3>项目列表</h3>
-                        <button class="btn btn-primary" onclick="showCreateProjectModal()">创建项目</button>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用户名</th>
+                                    <th>邮箱</th>
+                                    <th>角色</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable"></tbody>
+                        </table>
                     </div>
-                    <table>
+                </div>
+            </div>
+
+            <!-- 项目管理 -->
+            <div id="projectsPage" class="hidden">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>项目管理</h4>
+                    <button class="btn btn-primary" onclick="showModal('projectModal')">
+                        <i class="bi bi-plus-lg me-1"></i>创建项目
+                    </button>
+                </div>
+                <div class="row" id="projectsList"></div>
+            </div>
+
+            <!-- 服务管理 -->
+            <div id="servicesPage" class="hidden">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>服务管理</h4>
+                    <button class="btn btn-primary" onclick="showModal('serviceModal')">
+                        <i class="bi bi-plus-lg me-1"></i>创建服务
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>服务名称</th>
+                                    <th>服务标识</th>
+                                    <th>所属项目</th>
+                                    <th>类型</th>
+                                    <th>负责人</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="servicesTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 问题列表 -->
+            <div id="issuesPage" class="hidden">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>问题列表</h4>
+                    <button class="btn btn-primary" onclick="showModal('issueModal')">
+                        <i class="bi bi-plus-lg me-1"></i>提交问题
+                    </button>
+                </div>
+                
+                <div class="card mb-3 p-3">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <select class="form-select" id="filterProject" onchange="loadIssues()">
+                                <option value="">全部项目</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" id="filterStatus" onchange="loadIssues()">
+                                <option value="">全部状态</option>
+                                <option value="pending_analysis">待分析</option>
+                                <option value="pending_assignment">待分配</option>
+                                <option value="processing">处理中</option>
+                                <option value="pending_confirmation">待确认</option>
+                                <option value="resolved">已解决</option>
+                                <option value="closed">已关闭</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" id="filterPriority" onchange="loadIssues()">
+                                <option value="">全部优先级</option>
+                                <option value="P0">P0</option>
+                                <option value="P1">P1</option>
+                                <option value="P2">P2</option>
+                                <option value="P3">P3</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="issuesList"></div>
+            </div>
+
+            <!-- 问题详情 -->
+            <div id="issueDetailPage" class="hidden">
+                <div class="d-flex align-items-center mb-4">
+                    <button class="btn btn-outline-secondary me-3" onclick="showPage('issues')">
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                    <h4 class="mb-0" id="detailIssueNo">-</h4>
+                    <span class="badge ms-2" id="detailStatus">-</span>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card p-4 mb-3">
+                            <h5 id="detailTitle">-</h5>
+                            <p class="text-muted mt-2" id="detailDescription">-</p>
+                            
+                            <hr>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <small class="text-muted">所属项目</small>
+                                    <div id="detailProject">-</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">关联服务</small>
+                                    <div id="detailService">-</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">环境</small>
+                                    <div id="detailEnvironment">-</div>
+                                </div>
+                            </div>
+                            
+                            <div id="detailRootCauseSection" class="alert alert-success hidden">
+                                <strong>根本原因：</strong>
+                                <p id="detailRootCause" class="mb-0"></p>
+                            </div>
+                            
+                            <div id="detailSolutionSection" class="alert alert-info hidden">
+                                <strong>解决方案：</strong>
+                                <pre id="detailSolution" class="mb-0" style="white-space: pre-wrap;"></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="card p-4">
+                            <h5 class="mb-3">处理记录</h5>
+                            <div class="timeline" id="detailComments"></div>
+                            
+                            <div class="mt-4">
+                                <textarea class="form-control mb-2" id="newComment" rows="3" placeholder="添加处理记录..."></textarea>
+                                <select class="form-select mb-2 d-inline-block" style="width: auto;" id="commentType">
+                                    <option value="comment">普通评论</option>
+                                    <option value="process_record">处理记录</option>
+                                    <option value="solution">解决方案</option>
+                                </select>
+                                <button class="btn btn-primary" onclick="addComment()">提交</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card p-4 mb-3">
+                            <h6 class="mb-3">问题信息</h6>
+                            <div class="mb-2">
+                                <small class="text-muted">创建人</small>
+                                <div id="detailCreator">-</div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">处理人</small>
+                                <div id="detailAssignee">-</div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">创建时间</small>
+                                <div id="detailCreatedAt">-</div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">优先级</small>
+                                <div><span class="badge" id="detailPriority">-</span></div>
+                            </div>
+                        </div>
+                        
+                        <div class="card p-4 mb-3">
+                            <h6 class="mb-3">状态流转</h6>
+                            <div id="detailStatusLogs"></div>
+                        </div>
+                        
+                        <div class="card p-4 mb-3" id="issueLogs">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">关联日志</h6>
+                            </div>
+                            <div id="detailIssueLogs"></div>
+                        </div>
+
+                        <div class="card p-4" id="issueActions">
+                            <h6 class="mb-3">操作</h6>
+                            <div id="actionButtons"></div>
+                        </div>
+
+                        <div class="card p-4" id="aiAnalysisSection">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">AI 智能分析</h6>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="runAIAnalysis()">
+                                        <i class="bi bi-lightning me-1"></i>快速分析
+                                    </button>
+                                    <button class="btn btn-sm btn-primary" onclick="runAgentAnalysis()">
+                                        <i class="bi bi-robot me-1"></i>深度分析
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 快速分析结果 -->
+                            <div id="quickAnalysisResult" class="mb-3">
+                                <p class="text-muted text-center py-2">点击"快速分析"或"深度分析"</p>
+                            </div>
+
+                            <!-- Agent 深度分析进度 -->
+                            <div id="agentAnalysisSection" class="d-none">
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span id="agentProgressStep">分析进度</span>
+                                        <span id="agentProgressPercent">0%</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" id="agentProgressBar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div id="agentAnalysisStatus" class="small text-muted text-center">等待开始...</div>
+                                <div id="agentAnalysisResult" class="mt-3"></div>
+                                <button class="btn btn-sm btn-outline-danger mt-2" id="cancelAgentBtn" onclick="cancelAgentAnalysis()">
+                                    <i class="bi bi-x-circle me-1"></i>取消分析
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card p-4" id="similarIssuesSection">
+                            <h6 class="mb-3">相似历史问题</h6>
+                            <div id="similarIssuesList">
+                                <p class="text-muted text-center py-2">加载中...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 历史问题查询页面 -->
+            <div id="historyIssuesPage" class="hidden">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>历史问题查询</h4>
+                </div>
+
+                <!-- 搜索区域 -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">关键词搜索</label>
+                                <input type="text" class="form-control" id="hiKeyword" placeholder="输入关键词搜索历史问题...">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">项目</label>
+                                <select class="form-control" id="hiProjectFilter">
+                                    <option value="">全部项目</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">问题类型</label>
+                                <select class="form-control" id="hiIssueTypeFilter">
+                                    <option value="">全部类型</option>
+                                    <option value="service_exception">服务异常</option>
+                                    <option value="performance_issue">性能问题</option>
+                                    <option value="data_issue">数据问题</option>
+                                    <option value="dependency_issue">依赖问题</option>
+                                    <option value="config_issue">配置问题</option>
+                                    <option value="security_issue">安全问题</option>
+                                    <option value="other">其他</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">环境</label>
+                                <select class="form-control" id="hiEnvironmentFilter">
+                                    <option value="">全部环境</option>
+                                    <option value="dev">开发</option>
+                                    <option value="test">测试</option>
+                                    <option value="staging">预发</option>
+                                    <option value="prod">生产</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button class="btn btn-primary w-100" onclick="searchHistoryIssues()">
+                                    <i class="bi bi-search me-1"></i>搜索
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 搜索结果 -->
+                <div class="card">
+                    <div class="card-body">
+                        <div id="historyIssuesList">
+                            <p class="text-muted text-center py-4">请输入关键词搜索历史问题</p>
+                        </div>
+                        <nav id="historyIssuesPagination" class="mt-3">
+                            <ul class="pagination justify-content-center"></ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 日志管理页面 -->
+            <div id="logsPage" class="hidden">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>日志管理</h4>
+                    <button class="btn btn-primary" onclick="showModal('logModal')">
+                        <i class="bi bi-plus-lg me-1"></i>新增日志
+                    </button>
+                </div>
+
+                <div class="card mb-3 p-3">
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <select class="form-control" id="logFilterProject" onchange="loadLogs()">
+                                <option value="">全部项目</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-control" id="logFilterLevel" onchange="loadLogs()">
+                                <option value="">全部级别</option>
+                                <option value="ERROR">ERROR</option>
+                                <option value="WARN">WARN</option>
+                                <option value="INFO">INFO</option>
+                                <option value="DEBUG">DEBUG</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-control" id="logFilterEnv" onchange="loadLogs()">
+                                <option value="">全部环境</option>
+                                <option value="dev">开发</option>
+                                <option value="test">测试</option>
+                                <option value="staging">预发</option>
+                                <option value="prod">生产</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="logFilterTrace" placeholder="Trace ID">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="logFilterKeyword" placeholder="关键词搜索">
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-3">
+                            <input type="datetime-local" class="form-control" id="logFilterStartTime">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="datetime-local" class="form-control" id="logFilterEndTime">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-primary w-100" onclick="loadLogs()">搜索</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-3">
+                    <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>项目名称</th>
-                                <th>项目标识</th>
-                                <th>状态</th>
-                                <th>创建时间</th>
+                                <th>时间</th>
+                                <th>级别</th>
+                                <th>服务</th>
+                                <th>环境</th>
+                                <th>Trace ID</th>
+                                <th>请求路径</th>
+                                <th>内容摘要</th>
                                 <th>操作</th>
                             </tr>
                         </thead>
-                        <tbody id="projectsTable">
-                        </tbody>
+                        <tbody id="logsTable"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Issues Section -->
-            <div id="issuesSection" class="hidden">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>问题列表</h3>
-                        <button class="btn btn-primary" onclick="showCreateIssueModal()">创建问题</button>
+            <!-- 日志详情页面 -->
+            <div id="logDetailPage" class="hidden">
+                <div class="d-flex align-items-center mb-4">
+                    <button class="btn btn-outline-secondary me-3" onclick="showPage('logs')">
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                    <h4 class="mb-0">日志详情</h4>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card p-4 mb-3">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <small class="text-muted">日志级别</small>
+                                    <div><span class="badge" id="logDetailLevel">-</span></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">环境</small>
+                                    <div id="logDetailEnv">-</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">发生时间</small>
+                                    <div id="logDetailTime">-</div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <small class="text-muted">服务</small>
+                                    <div id="logDetailService">-</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted">Trace ID</small>
+                                    <div id="logDetailTrace">-</div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <small class="text-muted">请求路径</small>
+                                    <div id="logDetailPath">-</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted">错误码</small>
+                                    <div id="logDetailErrorCode">-</div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="mb-3">
+                                <strong>日志内容</strong>
+                                <pre id="logDetailContent" class="bg-light p-3 mt-2" style="white-space: pre-wrap; word-break: break-all;"></pre>
+                            </div>
+                            <div id="logDetailStackSection" class="hidden">
+                                <strong>堆栈信息</strong>
+                                <pre id="logDetailStack" class="bg-light p-3 mt-2" style="white-space: pre-wrap; word-break: break-all;"></pre>
+                            </div>
+                        </div>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>问题编号</th>
-                                <th>标题</th>
-                                <th>项目</th>
-                                <th>优先级</th>
-                                <th>状态</th>
-                                <th>创建人</th>
-                                <th>创建时间</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="issuesTable">
-                        </tbody>
-                    </table>
+                    <div class="col-md-4">
+                        <div class="card p-4 mb-3">
+                            <h6 class="mb-3">关联问题</h6>
+                            <div id="logDetailIssue">-</div>
+                            <div class="mt-3">
+                                <select class="form-control mb-2" id="logLinkIssue">
+                                    <option value="">选择问题单关联</option>
+                                </select>
+                                <button class="btn btn-outline-primary w-100" onclick="linkLogToIssue()">关联问题</button>
+                            </div>
+                        </div>
+                        <div class="card p-4">
+                            <h6 class="mb-3">操作</h6>
+                            <button class="btn btn-outline-danger w-100" onclick="deleteLog()">删除日志</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Create Project Modal -->
-    <div id="createProjectModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>创建项目</h3>
-                <button class="close-btn" onclick="closeModal('createProjectModal')">&times;</button>
+    <!-- 模态框 -->
+    <div class="modal fade" id="projectModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">创建项目</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">项目名称 *</label>
+                                <input type="text" class="form-control" id="projectName">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">项目标识 *</label>
+                                <input type="text" class="form-control" id="projectCode" placeholder="如: user-center">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">项目描述</label>
+                        <textarea class="form-control" id="projectDesc" rows="2"></textarea>
+                    </div>
+                    <hr>
+                    <h6 class="mb-3">添加项目成员</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">研发人员</label>
+                                <select class="form-control" id="projectDevelopers" multiple size="5">
+                                </select>
+                                <small class="text-muted">按住 Ctrl/Cmd 可多选</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">测试人员</label>
+                                <select class="form-control" id="projectTesters" multiple size="5">
+                                </select>
+                                <small class="text-muted">按住 Ctrl/Cmd 可多选</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="createProject()">创建</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label>项目名称</label>
-                <input type="text" id="projectName" placeholder="请输入项目名称">
-            </div>
-            <div class="form-group">
-                <label>项目标识</label>
-                <input type="text" id="projectCode" placeholder="如: user-center">
-            </div>
-            <div class="form-group">
-                <label>项目描述</label>
-                <textarea id="projectDesc" rows="3" placeholder="请输入项目描述"></textarea>
-            </div>
-            <button class="btn btn-primary" onclick="createProject()">创建项目</button>
         </div>
     </div>
 
-    <!-- Create Issue Modal -->
-    <div id="createIssueModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>创建问题</h3>
-                <button class="close-btn" onclick="closeModal('createIssueModal')">&times;</button>
+    <div class="modal fade" id="serviceModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">创建服务</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">所属项目</label>
+                        <select class="form-control" id="serviceProject"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">服务名称</label>
+                        <input type="text" class="form-control" id="serviceName">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">服务标识</label>
+                        <input type="text" class="form-control" id="serviceCode" placeholder="如: auth-service">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">服务类型</label>
+                        <select class="form-control" id="serviceType">
+                            <option value="backend">后端服务</option>
+                            <option value="frontend">前端服务</option>
+                            <option value="gateway">网关</option>
+                            <option value="job">定时任务</option>
+                            <option value="middleware">中间件</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">服务描述</label>
+                        <textarea class="form-control" id="serviceDesc" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="createService()">创建</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label>问题标题</label>
-                <input type="text" id="issueTitle" placeholder="请输入问题标题">
-            </div>
-            <div class="form-group">
-                <label>所属项目</label>
-                <select id="issueProject">
-                </select>
-            </div>
-            <div class="form-group">
-                <label>优先级</label>
-                <select id="issuePriority">
-                    <option value="P0">P0 - 紧急</option>
-                    <option value="P1">P1 - 高</option>
-                    <option value="P2" selected>P2 - 中</option>
-                    <option value="P3">P3 - 低</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>问题类型</label>
-                <select id="issueType">
-                    <option value="api_error">接口异常</option>
-                    <option value="data_issue">数据问题</option>
-                    <option value="permission_issue">权限问题</option>
-                    <option value="performance_issue">性能问题</option>
-                    <option value="release_issue">发布问题</option>
-                    <option value="config_issue">配置问题</option>
-                    <option value="other">其他</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>问题描述</label>
-                <textarea id="issueDesc" rows="3" placeholder="请描述问题详情"></textarea>
-            </div>
-            <button class="btn btn-primary" onclick="createIssue()">创建问题</button>
         </div>
     </div>
 
+    <div class="modal fade" id="issueModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">提交问题</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">问题标题</label>
+                                <input type="text" class="form-control" id="issueTitle">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">优先级</label>
+                                <select class="form-control" id="issuePriority">
+                                    <option value="P0">P0 - 紧急</option>
+                                    <option value="P1">P1 - 高</option>
+                                    <option value="P2" selected>P2 - 中</option>
+                                    <option value="P3">P3 - 低</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">所属项目</label>
+                                <select class="form-control" id="issueProject"></select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">关联服务</label>
+                                <select class="form-control" id="issueService">
+                                    <option value="">无</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">问题类型</label>
+                                <select class="form-control" id="issueType">
+                                    <option value="api_error">接口异常</option>
+                                    <option value="data_issue">数据问题</option>
+                                    <option value="permission_issue">权限问题</option>
+                                    <option value="performance_issue">性能问题</option>
+                                    <option value="release_issue">发布问题</option>
+                                    <option value="config_issue">配置问题</option>
+                                    <option value="other">其他</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">环境</label>
+                                <select class="form-control" id="issueEnvironment">
+                                    <option value="dev">开发环境</option>
+                                    <option value="test">测试环境</option>
+                                    <option value="staging">预发环境</option>
+                                    <option value="prod">生产环境</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">问题描述</label>
+                        <textarea class="form-control" id="issueDescription" rows="4"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">错误信息</label>
+                        <textarea class="form-control" id="issueErrorMessage" rows="2" placeholder="可选，粘贴错误日志"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="createIssue()">提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="assignModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">分配处理人</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">选择处理人</label>
+                        <select class="form-control" id="assignUserId"></select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="assignIssue()">分配</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="resolveModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">填写解决方案</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">根本原因</label>
+                        <textarea class="form-control" id="resolveRootCause" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">解决方案</label>
+                        <textarea class="form-control" id="resolveSolution" rows="4"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="resolveIssue()">提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 日志模态框 -->
+    <div class="modal fade" id="logModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新增模拟日志</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">项目 *</label>
+                                <select class="form-control" id="logProject" onchange="updateLogServices()">
+                                    <option value="">选择项目</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">服务 *</label>
+                                <select class="form-control" id="logService">
+                                    <option value="">选择服务</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">环境 *</label>
+                                <select class="form-control" id="logEnvironment">
+                                    <option value="dev">开发环境</option>
+                                    <option value="test" selected>测试环境</option>
+                                    <option value="staging">预发环境</option>
+                                    <option value="prod">生产环境</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">日志级别 *</label>
+                                <select class="form-control" id="logLevel">
+                                    <option value="ERROR" selected>ERROR</option>
+                                    <option value="WARN">WARN</option>
+                                    <option value="INFO">INFO</option>
+                                    <option value="DEBUG">DEBUG</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">发生时间 *</label>
+                                <input type="datetime-local" class="form-control" id="logOccurredAt">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Trace ID</label>
+                                <input type="text" class="form-control" id="logTraceId" placeholder="链路追踪ID">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">请求路径</label>
+                                <input type="text" class="form-control" id="logRequestPath" placeholder="/api/xxx">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">错误码</label>
+                        <input type="text" class="form-control" id="logErrorCode" placeholder="如: 500, E001">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">日志内容 *</label>
+                        <textarea class="form-control" id="logContent" rows="4" placeholder="日志内容"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">堆栈信息</label>
+                        <textarea class="form-control" id="logStackTrace" rows="4" placeholder="可选，堆栈信息"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="createLog()">创建</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            <!-- 文档详情弹窗 -->
+            <div class="modal fade" id="kdDetailModal">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="kdDetailTitle">文档详情</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                            <div class="mb-3">
+                                <strong>标题：</strong><span id="kdDetailTitleText"></span>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4"><strong>类型：</strong><span id="kdDetailType"></span></div>
+                                <div class="col-md-4"><strong>项目：</strong><span id="kdDetailProject"></span></div>
+                                <div class="col-md-4"><strong>服务：</strong><span id="kdDetailService"></span></div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4"><strong>创建人：</strong><span id="kdDetailCreator"></span></div>
+                                <div class="col-md-4"><strong>版本：</strong><span id="kdDetailVersion"></span></div>
+                                <div class="col-md-4"><strong>向量化：</strong><span id="kdDetailVector"></span></div>
+                            </div>
+                            <div class="mb-3">
+                                <strong>内容：</strong>
+                                <div id="kdDetailContent" class="border rounded p-3 mt-2" style="white-space: pre-wrap; background: #f8f9fa;"></div>
+                            </div>
+                            <div class="mb-3">
+                                <strong>附件：</strong>
+                                <div id="kdDetailAttachments" class="mt-2"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-primary" onclick="showKdVersions()">
+                                <i class="bi bi-clock-history"></i> 版本历史
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="editKnowledgeDoc()">
+                                <i class="bi bi-pencil"></i> 编辑
+                            </button>
+                            <button type="button" class="btn btn-danger" onclick="deleteKnowledgeDoc()">
+                                <i class="bi bi-trash"></i> 删除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 创建/编辑文档弹窗 -->
+            <div class="modal fade" id="kdFormModal">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="kdFormTitle">创建文档</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" id="kdFormId">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">项目</label>
+                                        <select class="form-control" id="kdFormProject">
+                                            <option value="">无</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">服务</label>
+                                        <select class="form-control" id="kdFormService">
+                                            <option value="">无</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">文档类型 *</label>
+                                <select class="form-control" id="kdFormDocType" required>
+                                    <option value="">选择类型</option>
+                                    <option value="troubleshooting_manual">故障排查手册</option>
+                                    <option value="faq">常见问题处理方案</option>
+                                    <option value="deployment_guide">服务部署说明</option>
+                                    <option value="api_doc">接口说明</option>
+                                    <option value="db_doc">数据库说明</option>
+                                    <option value="release_process">发布流程规范</option>
+                                    <option value="incident_review">历史故障复盘</option>
+                                    <option value="environment_guide">环境使用说明</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">标题 *</label>
+                                <input type="text" class="form-control" id="kdFormTitleInput" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">内容 *</label>
+                                <textarea class="form-control" id="kdFormContent" rows="10" placeholder="支持 Markdown 格式"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">变更摘要</label>
+                                <input type="text" class="form-control" id="kdFormSummary" placeholder="说明本次修改内容">
+                            </div>
+                            <!-- 附件拖拽区域 -->
+                            <div class="mb-3">
+                                <label class="form-label">附件（可选，支持拖拽上传）</label>
+                                <div class="border rounded p-4 text-center" id="kdDropZone" style="border-style: dashed;">
+                                    <i class="bi bi-cloud-arrow-up fs-1 text-muted"></i>
+                                    <p class="text-muted mb-1">拖拽文件到此处或点击上传</p>
+                                    <input type="file" class="form-control" id="kdFileInput" multiple style="display:none">
+                                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="document.getElementById('kdFileInput').click()">选择文件</button>
+                                </div>
+                                <div id="kdFileList" class="mt-2"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" onclick="saveKnowledgeDoc()">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 版本历史弹窗 -->
+            <div class="modal fade" id="kdVersionsModal">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">版本历史</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                            <div id="kdVersionsList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-        const API_BASE = 'http://localhost:8080/api';
-        let token = localStorage.getItem('token') || '';
+        // 立即执行，检测脚本是否加载
+        console.log('=== Script loaded! ===');
+        
+        const API = 'http://localhost:8080/api';
+        let token = localStorage.getItem('token');
         let currentUser = null;
+        let currentIssue = null;
+        let projects = [];
+        let services = [];
+        let users = [];
 
-        // Initialize
+        // 初始化
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, setting up event listeners...');
+            
             if (token) {
                 getCurrentUser();
             }
+            
+            // 表单提交事件
+            document.getElementById('loginForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                console.log('Login form submitted');
+                login();
+            });
+            
+            document.getElementById('registerForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                console.log('Register form submitted');
+                register();
+            });
+            
+            // 直接监听按钮点击（调试用）
+            document.querySelector('#loginForm button[type="submit"]').addEventListener('click', (e) => {
+                console.log('Login button clicked');
+            });
+            
+            document.querySelector('#registerForm button[type="submit"]').addEventListener('click', (e) => {
+                console.log('Register button clicked');
+            });
+            
+            console.log('Event listeners attached successfully');
         });
 
-        // API Helper
+        // API 请求
         async function api(method, path, data = null) {
+            console.log('api() called:', method, path, data);
             const options = {
                 method,
                 headers: {
@@ -494,249 +1439,141 @@
             if (data) {
                 options.body = JSON.stringify(data);
             }
-            const response = await fetch(`${API_BASE}${path}`, options);
-            return response.json();
+            try {
+                console.log('Fetching:', `${API}${path}`);
+                const response = await fetch(`${API}${path}`, options);
+                const result = await response.json();
+                console.log('API response:', result);
+                return result;
+            } catch (err) {
+                console.error('API error:', err);
+                return { code: -1, message: '网络错误: ' + err.message };
+            }
         }
 
         // Toast
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+        function toast(msg, type = 'success') {
+            const div = document.createElement('div');
+            div.className = `alert alert-${type} position-fixed`;
+            div.style.cssText = 'top:20px;right:20px;z-index:9999;min-width:200px;';
+            div.textContent = msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
         }
 
-        // Login
+        // 登录
+        function handleLoginClick() {
+            console.log('handleLoginClick called');
+            login();
+        }
+        
         async function login() {
+            console.log('login() called');
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
+            console.log('Email:', email, 'Password length:', password.length);
             
-            const res = await api('POST', '/auth/login', { email, password });
-            
+            const res = await api('POST', '/auth/login', {
+                email: email,
+                password: password
+            });
+            console.log('Login response:', res);
             if (res.code === 0) {
                 token = res.data.token;
                 currentUser = res.data.user_info;
                 localStorage.setItem('token', token);
-                showToast('登录成功');
+                toast('登录成功');
                 showMainPage();
             } else {
-                showToast(res.message, 'error');
+                toast(res.message, 'danger');
             }
         }
 
-        // Logout
+        // 注册
+        function handleRegisterClick() {
+            console.log('handleRegisterClick called');
+            register();
+        }
+        
+        async function register() {
+            console.log('register() called');
+            const res = await api('POST', '/auth/register', {
+                username: document.getElementById('regUsername').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value,
+                role: document.getElementById('regRole').value
+            });
+            console.log('Register response:', res);
+            if (res.code === 0) {
+                toast('注册成功，请登录');
+                document.querySelector('[href="#login"]').click();
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 登出
         function logout() {
             token = '';
             currentUser = null;
             localStorage.removeItem('token');
             document.getElementById('loginPage').classList.remove('hidden');
             document.getElementById('mainPage').classList.add('hidden');
-            showToast('已退出登录');
         }
 
-        // Get Current User
+        // 获取当前用户
         async function getCurrentUser() {
             const res = await api('GET', '/auth/me');
             if (res.code === 0) {
                 currentUser = res.data;
                 showMainPage();
             } else {
-                localStorage.removeItem('token');
-                token = '';
+                logout();
             }
         }
 
-        // Show Main Page
+        // 显示主页面
         function showMainPage() {
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('mainPage').classList.remove('hidden');
-            document.getElementById('currentUser').textContent = currentUser.username;
-            loadDashboard();
-        }
-
-        // Show Section
-        function showSection(section) {
-            document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
-            event.target.classList.add('active');
             
-            document.getElementById('dashboardSection').classList.add('hidden');
-            document.getElementById('projectsSection').classList.add('hidden');
-            document.getElementById('issuesSection').classList.add('hidden');
-            document.getElementById(`${section}Section`).classList.remove('hidden');
+            document.getElementById('userName').textContent = currentUser.username;
+            document.getElementById('userRole').textContent = getRoleName(currentUser.role);
+            document.getElementById('userAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
             
-            if (section === 'dashboard') loadDashboard();
-            if (section === 'projects') loadProjects();
-            if (section === 'issues') loadIssues();
+            updateMenuByRole();
+            showPage('dashboard');
         }
 
-        // Load Dashboard
-        async function loadDashboard() {
-            const [projects, issues] = await Promise.all([
-                api('GET', '/projects'),
-                api('GET', '/issues')
-            ]);
-            
-            const projectList = projects.data?.list || [];
-            const issueList = issues.data?.list || [];
-            
-            document.getElementById('statProjects').textContent = projectList.length;
-            document.getElementById('statIssues').textContent = issueList.length;
-            document.getElementById('statPending').textContent = issueList.filter(i => 
-                ['pending_analysis', 'pending_assignment', 'processing'].includes(i.status)
-            ).length;
-            document.getElementById('statResolved').textContent = issueList.filter(i => 
-                i.status === 'resolved' || i.status === 'closed'
-            ).length;
-            
-            // Recent issues table
-            const tbody = document.getElementById('recentIssuesTable');
-            tbody.innerHTML = issueList.slice(0, 5).map(issue => `
-                <tr>
-                    <td>${issue.issue_no}</td>
-                    <td>${issue.title}</td>
-                    <td>${issue.project_name || '-'}</td>
-                    <td><span class="badge badge-${issue.priority.toLowerCase()}">${issue.priority}</span></td>
-                    <td><span class="badge badge-${getStatusClass(issue.status)}">${getStatusText(issue.status)}</span></td>
-                    <td>${formatDate(issue.created_at)}</td>
-                </tr>
-            `).join('') || '<tr><td colspan="6" style="text-align: center;">暂无数据</td></tr>';
+        // 根据角色更新菜单
+        function updateMenuByRole() {
+            document.querySelectorAll('#sidebarMenu a').forEach(a => {
+                const roles = a.dataset.role;
+                if (roles) {
+                    const roleList = roles.split(',');
+                    if (!roleList.includes(currentUser.role)) {
+                        a.classList.add('hidden');
+                    } else {
+                        a.classList.remove('hidden');
+                    }
+                }
+            });
         }
 
-        // Load Projects
-        async function loadProjects() {
-            const res = await api('GET', '/projects');
-            const tbody = document.getElementById('projectsTable');
-            const list = res.data?.list || [];
-            
-            tbody.innerHTML = list.map(p => `
-                <tr>
-                    <td>${p.id}</td>
-                    <td>${p.name}</td>
-                    <td>${p.code}</td>
-                    <td><span class="badge ${p.status === 1 ? 'badge-p3' : 'badge-closed'}">${p.status === 1 ? '正常' : '停用'}</span></td>
-                    <td>${formatDate(p.created_at)}</td>
-                    <td>
-                        <button class="btn btn-secondary" onclick="deleteProject(${p.id})">删除</button>
-                    </td>
-                </tr>
-            `).join('') || '<tr><td colspan="6" style="text-align: center;">暂无数据</td></tr>';
-            
-            // Update issue project select
-            const select = document.getElementById('issueProject');
-            select.innerHTML = list.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-        }
-
-        // Load Issues
-        async function loadIssues() {
-            const res = await api('GET', '/issues');
-            const tbody = document.getElementById('issuesTable');
-            const list = res.data?.list || [];
-            
-            tbody.innerHTML = list.map(i => `
-                <tr>
-                    <td>${i.issue_no}</td>
-                    <td>${i.title}</td>
-                    <td>${i.project_name || '-'}</td>
-                    <td><span class="badge badge-${i.priority.toLowerCase()}">${i.priority}</span></td>
-                    <td><span class="badge badge-${getStatusClass(i.status)}">${getStatusText(i.status)}</span></td>
-                    <td>${i.creator_name || '-'}</td>
-                    <td>${formatDate(i.created_at)}</td>
-                    <td>
-                        <button class="btn btn-secondary" onclick="viewIssue(${i.id})">查看</button>
-                    </td>
-                </tr>
-            `).join('') || '<tr><td colspan="8" style="text-align: center;">暂无数据</td></tr>';
-        }
-
-        // Create Project
-        async function createProject() {
-            const data = {
-                name: document.getElementById('projectName').value,
-                code: document.getElementById('projectCode').value,
-                description: document.getElementById('projectDesc').value
-            };
-            
-            const res = await api('POST', '/projects', data);
-            if (res.code === 0) {
-                showToast('项目创建成功');
-                closeModal('createProjectModal');
-                loadProjects();
-            } else {
-                showToast(res.message, 'error');
-            }
-        }
-
-        // Delete Project
-        async function deleteProject(id) {
-            if (!confirm('确定要删除这个项目吗？')) return;
-            const res = await api('DELETE', `/projects/${id}`);
-            if (res.code === 0) {
-                showToast('项目已删除');
-                loadProjects();
-            } else {
-                showToast(res.message, 'error');
-            }
-        }
-
-        // Create Issue
-        async function createIssue() {
-            const data = {
-                title: document.getElementById('issueTitle').value,
-                project_id: parseInt(document.getElementById('issueProject').value),
-                priority: document.getElementById('issuePriority').value,
-                issue_type: document.getElementById('issueType').value,
-                description: document.getElementById('issueDesc').value
-            };
-            
-            const res = await api('POST', '/issues', data);
-            if (res.code === 0) {
-                showToast('问题创建成功');
-                closeModal('createIssueModal');
-                loadIssues();
-            } else {
-                showToast(res.message, 'error');
-            }
-        }
-
-        // View Issue
-        function viewIssue(id) {
-            showToast('问题详情功能开发中...');
-        }
-
-        // Modal
-        function showCreateProjectModal() {
-            document.getElementById('projectName').value = '';
-            document.getElementById('projectCode').value = '';
-            document.getElementById('projectDesc').value = '';
-            document.getElementById('createProjectModal').classList.add('show');
-        }
-
-        function showCreateIssueModal() {
-            document.getElementById('issueTitle').value = '';
-            document.getElementById('issueDesc').value = '';
-            document.getElementById('createIssueModal').classList.add('show');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('show');
-        }
-
-        // Helpers
-        function getStatusClass(status) {
+        // 角色名称
+        function getRoleName(role) {
             const map = {
-                'pending_analysis': 'pending',
-                'pending_assignment': 'pending',
-                'processing': 'processing',
-                'pending_confirmation': 'processing',
-                'resolved': 'resolved',
-                'closed': 'closed',
-                'reopened': 'pending'
+                'system_admin': '系统管理员',
+                'project_admin': '项目管理员',
+                'developer': '研发人员',
+                'tester': '测试人员',
+                'normal_user': '普通用户'
             };
-            return map[status] || 'pending';
+            return map[role] || role;
         }
 
-        function getStatusText(status) {
+        // 状态名称
+        function getStatusName(status) {
             const map = {
                 'pending_analysis': '待分析',
                 'pending_assignment': '待分配',
@@ -749,19 +1586,1687 @@
             return map[status] || status;
         }
 
-        function formatDate(dateStr) {
-            if (!dateStr) return '-';
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
+        // 状态样式类
+        function getStatusClass(status) {
+            const map = {
+                'pending_analysis': 'bg-warning text-dark',
+                'pending_assignment': 'bg-secondary',
+                'processing': 'bg-info',
+                'pending_confirmation': 'bg-primary',
+                'resolved': 'bg-success',
+                'closed': 'bg-dark',
+                'reopened': 'bg-danger'
+            };
+            return map[status] || 'bg-secondary';
         }
 
-        // Close modal on outside click
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.remove('show');
-                }
+        // 显示页面
+        function showPage(page) {
+            document.querySelectorAll('#sidebarMenu a').forEach(a => a.classList.remove('active'));
+            document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+
+            document.querySelectorAll('.main-content > div').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`${page}Page`)?.classList.remove('hidden');
+
+            if (page === 'dashboard') loadDashboard();
+            if (page === 'users') loadUsers();
+            if (page === 'projects') loadProjects();
+            if (page === 'services') loadServices();
+            if (page === 'issues') loadIssues();
+            if (page === 'logs') loadLogs();
+            if (page === 'knowledgeDocs') loadKnowledgeDocs();
+            if (page === 'historyIssues') initHistoryIssuesPage();
+        }
+
+        // 加载仪表盘
+        async function loadDashboard() {
+            const [projRes, svcRes, issueRes] = await Promise.all([
+                api('GET', '/projects'),
+                api('GET', '/services?page_size=100'),
+                api('GET', '/issues?page_size=100')
+            ]);
+            
+            const projectList = projRes.data?.list || [];
+            const serviceList = svcRes.data?.list || [];
+            const issueList = issueRes.data?.list || [];
+            
+            document.getElementById('statProjects').textContent = projectList.length;
+            document.getElementById('statServices').textContent = serviceList.length;
+            document.getElementById('statIssues').textContent = issueList.length;
+            
+            const pending = issueList.filter(i => ['pending_analysis', 'pending_assignment', 'processing'].includes(i.status)).length;
+            document.getElementById('statPending').textContent = pending;
+            
+            // 状态统计
+            document.getElementById('chartPendingAnalysis').textContent = issueList.filter(i => i.status === 'pending_analysis' || i.status === 'pending_assignment').length;
+            document.getElementById('chartProcessing').textContent = issueList.filter(i => i.status === 'processing').length;
+            document.getElementById('chartResolved').textContent = issueList.filter(i => i.status === 'resolved').length;
+            document.getElementById('chartClosed').textContent = issueList.filter(i => i.status === 'closed').length;
+            
+            // 最近问题
+            const recentHtml = issueList.slice(0, 5).map(i => `
+                <div class="issue-card priority-${i.priority}" onclick="viewIssue(${i.id})">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <span class="text-muted small">${i.issue_no}</span>
+                            <div class="fw-bold">${i.title}</div>
+                        </div>
+                        <div>
+                            <span class="badge badge-priority-${i.priority.toLowerCase()}">${i.priority}</span>
+                            <span class="badge status-${i.status}">${getStatusName(i.status)}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-muted text-center py-4">暂无数据</p>';
+            document.getElementById('recentIssues').innerHTML = recentHtml;
+        }
+
+        // 加载用户
+        async function loadUsers() {
+            const res = await api('GET', '/users?page_size=100');
+            const list = res.data?.list || [];
+            users = list;
+            
+            document.getElementById('usersTable').innerHTML = list.map(u => `
+                <tr>
+                    <td>${u.id}</td>
+                    <td>${u.username}</td>
+                    <td>${u.email}</td>
+                    <td><span class="badge bg-secondary">${getRoleName(u.role)}</span></td>
+                    <td><span class="badge ${u.status === 1 ? 'bg-success' : 'bg-danger'}">${u.status === 1 ? '正常' : '禁用'}</span></td>
+                    <td>${formatDate(u.created_at)}</td>
+                </tr>
+            `).join('');
+        }
+
+        // 加载项目
+        async function loadProjects() {
+            const res = await api('GET', '/projects');
+            projects = res.data?.list || [];
+            
+            document.getElementById('projectsList').innerHTML = projects.map(p => `
+                <div class="col-md-4">
+                    <div class="card p-3 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <h5>${p.name}</h5>
+                            <span class="badge ${p.status === 1 ? 'bg-success' : 'bg-secondary'}">${p.status === 1 ? '正常' : '停用'}</span>
+                        </div>
+                        <p class="text-muted small mb-2">${p.code}</p>
+                        <p class="small mb-2">${p.description || '暂无描述'}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">${formatDate(p.created_at)}</small>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary" onclick="viewProjectMembers(${p.id})">成员</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteProject(${p.id})">删除</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // 更新下拉框
+            updateProjectSelects();
+        }
+
+        // 更新项目下拉框
+        function updateProjectSelects() {
+            const options = projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            document.getElementById('filterProject').innerHTML = '<option value="">全部项目</option>' + options;
+            document.getElementById('serviceProject').innerHTML = options;
+            document.getElementById('issueProject').innerHTML = options;
+        }
+
+        // 创建项目
+        async function createProject() {
+            // 获取选中的研发人员
+            const developerSelect = document.getElementById('projectDevelopers');
+            const selectedDevelopers = Array.from(developerSelect.selectedOptions).map(opt => ({
+                user_id: parseInt(opt.value),
+                project_role: 'developer'
+            }));
+            
+            // 获取选中的测试人员
+            const testerSelect = document.getElementById('projectTesters');
+            const selectedTesters = Array.from(testerSelect.selectedOptions).map(opt => ({
+                user_id: parseInt(opt.value),
+                project_role: 'tester'
+            }));
+            
+            const members = [...selectedDevelopers, ...selectedTesters];
+            
+            const res = await api('POST', '/projects', {
+                name: document.getElementById('projectName').value,
+                code: document.getElementById('projectCode').value,
+                description: document.getElementById('projectDesc').value,
+                members: members
             });
+            if (res.code === 0) {
+                toast('项目创建成功');
+                closeModal('projectModal');
+                loadProjects();
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 删除项目
+        async function deleteProject(id) {
+            if (!confirm('确定删除该项目？')) return;
+            const res = await api('DELETE', `/projects/${id}`);
+            if (res.code === 0) {
+                toast('已删除');
+                loadProjects();
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 加载服务
+        async function loadServices() {
+            const res = await api('GET', '/services?page_size=100');
+            services = res.data?.list || [];
+            
+            document.getElementById('servicesTable').innerHTML = services.map(s => `
+                <tr>
+                    <td>${s.name}</td>
+                    <td><code>${s.code}</code></td>
+                    <td>${s.project_name || '-'}</td>
+                    <td><span class="badge bg-secondary">${s.service_type}</span></td>
+                    <td>${s.owner_name || '-'}</td>
+                    <td><span class="badge ${s.status === 1 ? 'bg-success' : 'bg-secondary'}">${s.status === 1 ? '正常' : '下线'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteService(${s.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // 更新服务下拉框
+            const svcOptions = services.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            document.getElementById('issueService').innerHTML = '<option value="">无</option>' + svcOptions;
+        }
+
+        // 创建服务
+        async function createService() {
+            const res = await api('POST', `/projects/${document.getElementById('serviceProject').value}/services`, {
+                name: document.getElementById('serviceName').value,
+                code: document.getElementById('serviceCode').value,
+                service_type: document.getElementById('serviceType').value,
+                description: document.getElementById('serviceDesc').value
+            });
+            if (res.code === 0) {
+                toast('服务创建成功');
+                closeModal('serviceModal');
+                loadServices();
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 删除服务
+        async function deleteService(id) {
+            if (!confirm('确定删除该服务？')) return;
+            const res = await api('DELETE', `/services/${id}`);
+            if (res.code === 0) {
+                toast('已删除');
+                loadServices();
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 加载问题
+        async function loadIssues() {
+            const params = [];
+            const proj = document.getElementById('filterProject').value;
+            const status = document.getElementById('filterStatus').value;
+            const priority = document.getElementById('filterPriority').value;
+            if (proj) params.push(`project_id=${proj}`);
+            if (status) params.push(`status=${status}`);
+            if (priority) params.push(`priority=${priority}`);
+            
+            const res = await api('GET', `/issues?${params.join('&')}&page_size=100`);
+            const list = res.data?.list || [];
+            
+            document.getElementById('issuesList').innerHTML = list.map(i => `
+                <div class="issue-card priority-${i.priority}" onclick="viewIssue(${i.id})">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <span class="text-muted small">${i.issue_no}</span>
+                            <div class="fw-bold">${i.title}</div>
+                            <small class="text-muted">${i.project_name || '-'} · ${i.creator_name || '-'}</small>
+                        </div>
+                        <div class="text-end">
+                            <div>
+                                <span class="badge badge-priority-${i.priority.toLowerCase()}">${i.priority}</span>
+                                <span class="badge status-${i.status}">${getStatusName(i.status)}</span>
+                            </div>
+                            <small class="text-muted">${formatDate(i.created_at)}</small>
+                        </div>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-muted text-center py-4">暂无数据</p>';
+        }
+
+        // 创建问题
+        async function createIssue() {
+            const data = {
+                title: document.getElementById('issueTitle').value,
+                project_id: parseInt(document.getElementById('issueProject').value),
+                priority: document.getElementById('issuePriority').value,
+                issue_type: document.getElementById('issueType').value,
+                environment: document.getElementById('issueEnvironment').value,
+                description: document.getElementById('issueDescription').value,
+                error_message: document.getElementById('issueErrorMessage').value
+            };
+            const svc = document.getElementById('issueService').value;
+            if (svc) data.service_id = parseInt(svc);
+            
+            const res = await api('POST', '/issues', data);
+            if (res.code === 0) {
+                toast('问题提交成功');
+                closeModal('issueModal');
+                loadIssues();
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 查看问题详情
+        async function viewIssue(id) {
+            const res = await api('GET', `/issues/${id}`);
+            if (res.code !== 0) {
+                toast(res.message, 'danger');
+                return;
+            }
+
+            currentIssue = res.data;
+
+            document.getElementById('detailIssueNo').textContent = currentIssue.issue_no;
+            document.getElementById('detailTitle').textContent = currentIssue.title;
+            document.getElementById('detailDescription').textContent = currentIssue.description || '暂无描述';
+            document.getElementById('detailProject').textContent = currentIssue.project_name || '-';
+            document.getElementById('detailService').textContent = currentIssue.service_name || '-';
+            document.getElementById('detailEnvironment').textContent = currentIssue.environment || '-';
+            document.getElementById('detailCreator').textContent = currentIssue.creator_name || '-';
+            document.getElementById('detailAssignee').textContent = currentIssue.assignee_name || '未分配';
+            document.getElementById('detailCreatedAt').textContent = formatDate(currentIssue.created_at);
+
+            const statusBadge = document.getElementById('detailStatus');
+            statusBadge.textContent = getStatusName(currentIssue.status);
+            statusBadge.className = `badge status-${currentIssue.status}`;
+
+            const priorityBadge = document.getElementById('detailPriority');
+            priorityBadge.textContent = currentIssue.priority;
+            priorityBadge.className = `badge badge-priority-${currentIssue.priority.toLowerCase()}`;
+
+            // 根因和解决方案
+            if (currentIssue.root_cause) {
+                document.getElementById('detailRootCause').textContent = currentIssue.root_cause;
+                document.getElementById('detailRootCauseSection').classList.remove('hidden');
+            }
+            if (currentIssue.solution) {
+                document.getElementById('detailSolution').textContent = currentIssue.solution;
+                document.getElementById('detailSolutionSection').classList.remove('hidden');
+            }
+
+            // 加载项目的研发成员列表（用于分配处理人）
+            await loadProjectDevelopers(currentIssue.project_id);
+
+            // 加载评论
+            loadComments(id);
+
+            // 加载状态日志
+            loadStatusLogs(id);
+
+            // 加载关联日志
+            loadIssueLogs(id);
+
+            // 加载相似问题推荐
+            loadSimilarIssues(id);
+
+            // 更新操作按钮
+            updateActionButtons();
+
+            showPage('issueDetail');
+            document.getElementById('issueDetailPage').classList.remove('hidden');
+        }
+
+        // 加载项目的研发成员
+        async function loadProjectDevelopers(projectId) {
+            const res = await api('GET', `/projects/${projectId}/members?global_role=developer`);
+            projectDevelopers = res.data?.list || [];
+            
+            // 检查当前用户是否是项目成员（获取所有成员，不过滤）
+            const allMembersRes = await api('GET', `/projects/${projectId}/members`);
+            const allMembers = allMembersRes.data?.list || [];
+            isProjectMember = allMembers.some(m => m.user_id === currentUser.id) || currentUser.role === 'system_admin';
+        }
+
+        // 加载评论
+        async function loadComments(issueId) {
+            const res = await api('GET', `/issues/${issueId}/comments`);
+            const list = res.data?.list || [];
+            
+            document.getElementById('detailComments').innerHTML = list.map(c => `
+                <div class="timeline-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>${c.username || '系统'}</strong>
+                        <small class="text-muted">${formatDate(c.created_at)}</small>
+                    </div>
+                    <p class="mb-0 mt-1">${c.content}</p>
+                </div>
+            `).join('') || '<p class="text-muted">暂无处理记录</p>';
+        }
+
+        // 加载状态日志
+        async function loadStatusLogs(issueId) {
+            const res = await api('GET', `/issues/${issueId}/status-logs`);
+            const list = res.data || [];
+            
+            document.getElementById('detailStatusLogs').innerHTML = list.map(l => `
+                <div class="mb-2 pb-2 border-bottom">
+                    <small class="text-muted">${formatDate(l.created_at)}</small>
+                    <div>${getStatusName(l.from_status) || '初始'} → ${getStatusName(l.to_status)}</div>
+                    ${l.reason ? `<small class="text-muted">${l.reason}</small>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // 加载问题关联的日志
+        async function loadIssueLogs(issueId) {
+            const res = await api('GET', `/logs/issue/${issueId}`);
+            const list = res.data || [];
+            
+            if (list.length === 0) {
+                document.getElementById('detailIssueLogs').innerHTML = '<p class="text-muted mb-0">暂无关联日志</p>';
+                return;
+            }
+            
+            document.getElementById('detailIssueLogs').innerHTML = '<table class="table table-sm mb-0"><thead><tr>' +
+                '<th>时间</th><th>级别</th><th>服务</th><th>日志内容</th><th>操作</th>' +
+                '</tr></thead><tbody>' +
+                list.map(l => `<tr>
+                    <td><small>${formatDate(l.occurred_at)}</small></td>
+                    <td><span class="badge ${getLogLevelClass(l.log_level)}">${l.log_level}</span></td>
+                    <td><small>${l.service_name || '-'}</small></td>
+                    <td><small class="text-truncate d-inline-block" style="max-width:200px" title="${escapeHtml(l.log_content)}">${escapeHtml(l.log_content)}</small></td>
+                    <td><button class="btn btn-sm btn-link" onclick="viewLog(${l.id})">查看</button></td>
+                </tr>`).join('') +
+                '</tbody></table>';
+        }
+
+        let isProjectMember = false; // 当前用户是否是项目成员
+
+        // 更新操作按钮
+        function updateActionButtons() {
+            const actions = document.getElementById('actionButtons');
+            actions.innerHTML = '';
+
+            const status = currentIssue.status;
+            const role = currentUser.role;
+
+            // 系统管理员或项目成员可以操作
+            const canOperate = role === 'system_admin' || isProjectMember;
+
+            if (!canOperate && currentIssue.creator_id !== currentUser.id) {
+                // 非项目成员且非创建者，只显示只读信息
+                return;
+            }
+
+            // 分配按钮 - 任何状态都可以分配
+            if (status === 'pending_analysis' || status === 'pending_assignment' || status === 'processing') {
+                actions.innerHTML += `<button class="btn btn-primary w-100 mb-2" onclick="showModal('assignModal')">分配处理人</button>`;
+            }
+
+            // 处理中状态的操作
+            if (status === 'processing') {
+                // 被分配人可以填写解决方案
+                if (currentIssue.assignee_id === currentUser.id) {
+                    actions.innerHTML += `<button class="btn btn-success w-100 mb-2" onclick="showModal('resolveModal')">填写解决方案</button>`;
+                }
+                // 项目成员可以标记为待确认
+                if (canOperate) {
+                    actions.innerHTML += `<button class="btn btn-outline-success w-100 mb-2" onclick="markAsPendingConfirmation()">标记为待确认</button>`;
+                }
+            }
+
+            // 待确认状态 - 项目成员可以确认
+            if (status === 'pending_confirmation' && canOperate) {
+                actions.innerHTML += `<button class="btn btn-success w-100 mb-2" onclick="confirmResolved()">确认已解决</button>`;
+            }
+
+            // 已解决状态 - 项目管理员和系统管理员可以关闭
+            if (status === 'resolved' && (role === 'system_admin' || role === 'project_admin' || isProjectMember)) {
+                actions.innerHTML += `<button class="btn btn-secondary w-100 mb-2" onclick="closeIssue()">关闭问题</button>`;
+            }
+
+            // 已关闭状态 - 项目成员或创建者可以重新打开
+            if (status === 'closed' && (canOperate || currentIssue.creator_id === currentUser.id)) {
+                actions.innerHTML += `<button class="btn btn-warning w-100 mb-2" onclick="reopenIssue()">重新打开</button>`;
+            }
+        }
+
+        // 分配问题
+        async function assignIssue() {
+            const res = await api('PATCH', `/issues/${currentIssue.id}/assign`, {
+                assignee_id: parseInt(document.getElementById('assignUserId').value)
+            });
+            if (res.code === 0) {
+                toast('分配成功');
+                closeModal('assignModal');
+                viewIssue(currentIssue.id);
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 解决问题
+        async function resolveIssue() {
+            const rootCause = document.getElementById('resolveRootCause').value;
+            const solution = document.getElementById('resolveSolution').value;
+            
+            // 更新问题
+            await api('PUT', `/issues/${currentIssue.id}`, { root_cause: rootCause, solution: solution });
+            
+            // 修改状态
+            const res = await api('PATCH', `/issues/${currentIssue.id}/status`, {
+                status: 'pending_confirmation',
+                reason: '已定位根因并填写解决方案'
+            });
+            if (res.code === 0) {
+                toast('已提交解决方案');
+                closeModal('resolveModal');
+                viewIssue(currentIssue.id);
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 确认解决
+        async function confirmResolved() {
+            const res = await api('PATCH', `/issues/${currentIssue.id}/status`, {
+                status: 'resolved',
+                reason: '用户确认问题已解决'
+            });
+            if (res.code === 0) {
+                toast('问题已解决');
+                viewIssue(currentIssue.id);
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 关闭问题
+        async function closeIssue() {
+            const res = await api('PATCH', `/issues/${currentIssue.id}/status`, {
+                status: 'closed',
+                reason: '问题处理完成，关闭'
+            });
+            if (res.code === 0) {
+                toast('问题已关闭');
+                viewIssue(currentIssue.id);
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 标记为待确认
+        async function markAsPendingConfirmation() {
+            const res = await api('PATCH', `/issues/${currentIssue.id}/status`, {
+                status: 'pending_confirmation',
+                reason: '处理完成，等待确认'
+            });
+            if (res.code === 0) {
+                toast('已标记为待确认');
+                viewIssue(currentIssue.id);
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 重新打开问题
+        async function reopenIssue() {
+            const res = await api('PATCH', `/issues/${currentIssue.id}/status`, {
+                status: 'reopened',
+                reason: '问题复现，重新打开'
+            });
+            if (res.code === 0) {
+                toast('问题已重新打开');
+                viewIssue(currentIssue.id);
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 添加评论
+        async function addComment() {
+            const content = document.getElementById('newComment').value;
+            if (!content) return;
+            
+            const res = await api('POST', `/issues/${currentIssue.id}/comments`, {
+                content: content,
+                comment_type: document.getElementById('commentType').value
+            });
+            if (res.code === 0) {
+                document.getElementById('newComment').value = '';
+                loadComments(currentIssue.id);
+                toast('已添加');
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        let projectDevelopers = []; // 当前项目的研发人员列表
+
+        // 显示模态框
+        async function showModal(id) {
+            new bootstrap.Modal(document.getElementById(id)).show();
+
+            if (id === 'assignModal') {
+                // 使用当前项目的研发人员列表
+                const options = projectDevelopers.map(u => `<option value="${u.user_id}">${u.username}</option>`).join('');
+                document.getElementById('assignUserId').innerHTML = options || '<option value="">暂无可用研发人员</option>';
+            }
+
+            if (id === 'projectModal') {
+                // 加载研发人员和测试人员列表
+                const developers = users.filter(u => u.role === 'developer' && u.status === 1);
+                const testers = users.filter(u => u.role === 'tester' && u.status === 1);
+
+                document.getElementById('projectDevelopers').innerHTML = developers.map(u =>
+                    `<option value="${u.id}">${u.username}</option>`
+                ).join('') || '<option value="" disabled>暂无研发人员</option>';
+
+                document.getElementById('projectTesters').innerHTML = testers.map(u =>
+                    `<option value="${u.id}">${u.username}</option>`
+                ).join('') || '<option value="" disabled>暂无测试人员</option>';
+            }
+        }
+
+        // 关闭模态框
+        function closeModal(id) {
+            bootstrap.Modal.getInstance(document.getElementById(id))?.hide();
+        }
+
+        // 格式化日期
+        function formatDate(str) {
+            if (!str) return '-';
+            const d = new Date(str);
+            return d.toLocaleDateString('zh-CN') + ' ' + d.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
+        }
+
+        // =============== 日志管理相关函数 ===============
+        let currentLog = null;
+
+        // 加载日志列表
+        async function loadLogs() {
+            const params = [];
+            const projectId = document.getElementById('logFilterProject').value;
+            const level = document.getElementById('logFilterLevel').value;
+            const env = document.getElementById('logFilterEnv').value;
+            const traceId = document.getElementById('logFilterTrace').value;
+            const keyword = document.getElementById('logFilterKeyword').value;
+            const startTime = document.getElementById('logFilterStartTime').value;
+            const endTime = document.getElementById('logFilterEndTime').value;
+
+            if (projectId) params.push(`project_id=${projectId}`);
+            if (level) params.push(`log_level=${level}`);
+            if (env) params.push(`environment=${env}`);
+            if (traceId) params.push(`trace_id=${traceId}`);
+            if (keyword) params.push(`keyword=${encodeURIComponent(keyword)}`);
+            if (startTime) params.push(`start_time=${startTime}`);
+            if (endTime) params.push(`end_time=${endTime}`);
+
+            const res = await api('GET', `/logs?${params.join('&')}&page_size=100`);
+            const list = res.data?.list || [];
+
+            // 更新项目下拉框
+            const projectOptions = projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            document.getElementById('logFilterProject').innerHTML = '<option value="">全部项目</option>' + projectOptions;
+
+            document.getElementById('logsTable').innerHTML = list.map(log => `
+                <tr onclick="viewLog(${log.id})" style="cursor: pointer;">
+                    <td>${formatDate(log.occurred_at)}</td>
+                    <td><span class="badge ${getLogLevelClass(log.log_level)}">${log.log_level}</span></td>
+                    <td>${log.service_name}</td>
+                    <td>${log.environment}</td>
+                    <td><code>${log.trace_id || '-'}</code></td>
+                    <td>${log.request_path || '-'}</td>
+                    <td>${truncate(log.log_content, 50)}</td>
+                    <td><button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteLogById(${log.id})">删除</button></td>
+                </tr>
+            `).join('') || '<tr><td colspan="8" class="text-center text-muted py-4">暂无日志数据</td></tr>';
+        }
+
+        // 获取日志级别样式
+        function getLogLevelClass(level) {
+            const classes = {
+                'ERROR': 'bg-danger',
+                'WARN': 'bg-warning text-dark',
+                'INFO': 'bg-info',
+                'DEBUG': 'bg-secondary'
+            };
+            return classes[level] || 'bg-secondary';
+        }
+
+        // HTML转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // =========== AI 分析相关函数 ===========
+
+        // 全局变量
+        let currentAgentTaskId = null;
+        let agentPollInterval = null;
+
+        // 运行 Agent 深度分析
+        async function runAgentAnalysis() {
+            if (!currentIssue) {
+                toast('请先选择问题', 'danger');
+                return;
+            }
+
+            // 禁用按钮
+            document.querySelectorAll('button[onclick="runAgentAnalysis()"]').forEach(btn => {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>分析中...';
+            });
+
+            // 显示进度区域
+            const section = document.getElementById('agentAnalysisSection');
+            section.classList.remove('d-none');
+            document.getElementById('agentAnalysisResult').innerHTML = '';
+            document.getElementById('agentProgressStep').textContent = '正在创建分析任务...';
+            document.getElementById('agentProgressPercent').textContent = '0%';
+            document.getElementById('agentProgressBar').style.width = '0%';
+            document.getElementById('agentAnalysisStatus').textContent = '等待开始...';
+
+            try {
+                // 创建分析任务
+                const res = await api('POST', `/issues/${currentIssue.id}/agent-tasks`);
+
+                if (res.code !== 0) {
+                    toast(res.message || '创建分析任务失败', 'danger');
+                    resetAgentButton();
+                    section.classList.add('d-none');
+                    return;
+                }
+
+                currentAgentTaskId = res.data.id;
+                document.getElementById('agentAnalysisStatus').textContent = `任务 ID: ${currentAgentTaskId}`;
+
+                // 开始轮询进度
+                startPolling();
+
+            } catch (e) {
+                toast('创建分析任务失败: ' + e.message, 'danger');
+                resetAgentButton();
+                section.classList.add('d-none');
+            }
+        }
+
+        // 开始轮询进度
+        function startPolling() {
+            if (agentPollInterval) {
+                clearInterval(agentPollInterval);
+            }
+
+            agentPollInterval = setInterval(async () => {
+                try {
+                    const res = await api('GET', `/agent-tasks/${currentAgentTaskId}`);
+                    const task = res.data;
+
+                    // 更新进度
+                    const progressText = task.progress || '0/8';
+                    const [current, total] = progressText.split('/').map(Number);
+                    const percent = total > 0 ? Math.round((current / total) * 100) : 0;
+
+                    document.getElementById('agentProgressStep').textContent = task.current_step || '处理中...';
+                    document.getElementById('agentProgressPercent').textContent = `${percent}%`;
+                    document.getElementById('agentProgressBar').style.width = `${percent}%`;
+                    document.getElementById('agentAnalysisStatus').textContent = `状态: ${getTaskStatusName(task.status)}`;
+
+                    // 检查状态
+                    if (task.status === 'completed') {
+                        clearInterval(agentPollInterval);
+                        agentPollInterval = null;
+                        displayAgentResult(task);
+                        resetAgentButton();
+                        toast('分析完成！', 'success');
+                    } else if (task.status === 'failed') {
+                        clearInterval(agentPollInterval);
+                        agentPollInterval = null;
+                        document.getElementById('agentAnalysisResult').innerHTML =
+                            `<div class="alert alert-danger">分析失败: ${task.error_message || '未知错误'}</div>`;
+                        resetAgentButton();
+                        toast('分析失败', 'danger');
+                    } else if (task.status === 'cancelled') {
+                        clearInterval(agentPollInterval);
+                        agentPollInterval = null;
+                        document.getElementById('agentAnalysisStatus').textContent = '已取消';
+                        resetAgentButton();
+                        toast('分析已取消', 'warning');
+                    }
+
+                } catch (e) {
+                    console.error('Polling error:', e);
+                }
+            }, 2000);
+        }
+
+        // 取消 Agent 分析
+        async function cancelAgentAnalysis() {
+            if (!currentAgentTaskId) return;
+
+            if (!confirm('确定取消分析？')) return;
+
+            try {
+                await api('POST', `/agent-tasks/${currentAgentTaskId}/cancel`);
+                if (agentPollInterval) {
+                    clearInterval(agentPollInterval);
+                    agentPollInterval = null;
+                }
+                document.getElementById('agentAnalysisStatus').textContent = '已取消';
+                document.getElementById('cancelAgentBtn').disabled = true;
+                toast('已取消分析', 'info');
+            } catch (e) {
+                toast('取消失败: ' + e.message, 'danger');
+            }
+        }
+
+        // 显示 Agent 分析结果
+        function displayAgentResult(task) {
+            const result = task.result ? JSON.parse(task.result) : {};
+            const container = document.getElementById('agentAnalysisResult');
+
+            const html = `
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>问题摘要</strong>
+                            <p class="mb-0 mt-1">${escapeHtml(result.summary || '-')}</p>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <strong>问题类型</strong>
+                                <div><span class="badge bg-info">${getIssueTypeName(result.issue_type)}</span></div>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>疑似原因</strong>
+                                <div class="small">${escapeHtml(result.suspected_cause || '-')}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>置信度</strong>
+                                <div>${((result.confidence || 0) * 100).toFixed(0)}%</div>
+                            </div>
+                        </div>
+                        ${result.related_services && result.related_services.length > 0 ? `
+                        <div class="mb-3">
+                            <strong>关联服务</strong>
+                            <div>
+                                ${result.related_services.map(s => `<span class="badge bg-secondary me-1">${escapeHtml(s)}</span>`).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                        ${result.evidence && result.evidence.length > 0 ? `
+                        <div class="mb-3">
+                            <strong>证据来源</strong>
+                            <ul class="mb-0 mt-1 small">
+                                ${result.evidence.map(e => `<li><strong>${e.source}:</strong> ${escapeHtml(e.content.substring(0, 100))}...</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+                        ${result.suggestions && result.suggestions.length > 0 ? `
+                        <div class="mb-3">
+                            <strong>排查建议</strong>
+                            <ol class="mb-0 mt-1">
+                                ${result.suggestions.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+                            </ol>
+                        </div>
+                        ` : ''}
+                        ${result.missing_info && result.missing_info.length > 0 ? `
+                        <div class="mb-3">
+                            <strong>缺失信息</strong>
+                            <ul class="mb-0 mt-1">
+                                ${result.missing_info.map(m => `<li>${escapeHtml(m)}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+                        ${result.next_steps && result.next_steps.length > 0 ? `
+                        <div class="mb-0">
+                            <strong>后续待办</strong>
+                            <ul class="mb-0 mt-1">
+                                ${result.next_steps.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // 获取任务状态名称
+        function getTaskStatusName(status) {
+            const map = {
+                'pending': '等待中',
+                'running': '分析中',
+                'completed': '已完成',
+                'failed': '失败',
+                'cancelled': '已取消'
+            };
+            return map[status] || status;
+        }
+
+        // 重置 Agent 按钮状态
+        function resetAgentButton() {
+            document.querySelectorAll('button[onclick="runAgentAnalysis()"]').forEach(btn => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-robot me-1"></i>深度分析';
+            });
+        }
+
+        // 运行 AI 快速分析
+        async function runAIAnalysis() {
+            if (!currentIssue) {
+                toast('请先选择问题', 'danger');
+                return;
+            }
+
+            const container = document.getElementById('quickAnalysisResult');
+            container.innerHTML = '<p class="text-center py-3"><span class="spinner-border spinner-border-sm me-2"></span>AI 正在分析中...</p>';
+            container.classList.remove('d-none');
+
+            try {
+                const res = await api('POST', `/issues/${currentIssue.id}/ai-analysis`);
+
+                if (res.code !== 0) {
+                    container.innerHTML = `<div class="alert alert-danger">${res.message}</div>`;
+                    return;
+                }
+
+                const result = res.data;
+                displayAIAnalysisResult(result);
+            } catch (e) {
+                container.innerHTML = `<div class="alert alert-danger">AI 分析失败: ${e.message || '请检查 AI 服务是否启动'}</div>`;
+            }
+        }
+
+        // 显示 AI 分析结果
+        function displayAIAnalysisResult(result) {
+            const container = document.getElementById('quickAnalysisResult');
+
+            const html = `
+                <div class="mb-3">
+                    <strong>问题摘要</strong>
+                    <p class="mb-0 mt-1">${escapeHtml(result.summary)}</p>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>问题类型</strong>
+                        <div><span class="badge bg-info">${getIssueTypeName(result.issue_type)}</span></div>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>建议优先级</strong>
+                        <div><span class="badge ${getPriorityClass(result.priority)}">${result.priority}</span></div>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>置信度</strong>
+                        <div>${(result.confidence * 100).toFixed(0)}%</div>
+                    </div>
+                </div>
+                ${result.related_services && result.related_services.length > 0 ? `
+                <div class="mb-3">
+                    <strong>关联服务</strong>
+                    <div class="mt-1">
+                        ${result.related_services.map(s => `<span class="badge bg-secondary me-1">${escapeHtml(s)}</span>`).join('')}
+                    </div>
+                </div>
+                ` : ''}
+                ${result.key_info && (result.key_info.error_code || result.key_info.error_type || result.key_info.affected_endpoint) ? `
+                <div class="mb-3">
+                    <strong>关键信息</strong>
+                    <div class="mt-1">
+                        ${result.key_info.error_code ? `<span class="badge bg-danger me-1">错误码: ${escapeHtml(result.key_info.error_code)}</span>` : ''}
+                        ${result.key_info.error_type ? `<span class="badge bg-warning text-dark me-1">${escapeHtml(result.key_info.error_type)}</span>` : ''}
+                        ${result.key_info.affected_endpoint ? `<span class="badge bg-primary me-1">${escapeHtml(result.key_info.affected_endpoint)}</span>` : ''}
+                    </div>
+                </div>
+                ` : ''}
+                ${result.missing_info && result.missing_info.length > 0 ? `
+                <div class="mb-3">
+                    <strong>缺失信息</strong>
+                    <ul class="mb-0 mt-1">
+                        ${result.missing_info.map(info => `<li>${escapeHtml(info)}</li>`).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+                ${result.suggestions && result.suggestions.length > 0 ? `
+                <div class="mb-0">
+                    <strong>排查建议</strong>
+                    <ol class="mb-0 mt-1">
+                        ${result.suggestions.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+                    </ol>
+                </div>
+                ` : ''}
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // 获取问题类型名称
+        function getIssueTypeName(type) {
+            const map = {
+                'service_exception': '服务异常',
+                'performance_issue': '性能问题',
+                'data_issue': '数据问题',
+                'dependency_issue': '依赖问题',
+                'config_issue': '配置问题',
+                'security_issue': '安全问题',
+                'network_issue': '网络问题',
+                'api_error': '接口错误',
+                'other': '其他'
+            };
+            return map[type] || type;
+        }
+
+        // 获取优先级样式
+        function getPriorityClass(priority) {
+            const map = {
+                'P0': 'bg-danger',
+                'P1': 'bg-warning text-dark',
+                'P2': 'bg-info',
+                'P3': 'bg-success'
+            };
+            return map[priority] || 'bg-secondary';
+        }
+
+        // =========== 历史问题查询相关函数 ===========
+
+        let hiCurrentPage = 1;
+
+        // 初始化历史问题查询页面
+        async function initHistoryIssuesPage() {
+            // 加载项目下拉
+            const projectRes = await api('GET', '/projects?page_size=100');
+            const projects = projectRes.data?.list || [];
+            const projectSelect = document.getElementById('hiProjectFilter');
+            projectSelect.innerHTML = '<option value="">全部项目</option>' +
+                projects.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+
+            // 自动加载历史问题列表
+            searchHistoryIssues(1);
+        }
+
+        // 搜索历史问题
+        async function searchHistoryIssues(page = 1) {
+            hiCurrentPage = page;
+            const keyword = document.getElementById('hiKeyword').value.trim();
+            const projectId = document.getElementById('hiProjectFilter').value;
+            const issueType = document.getElementById('hiIssueTypeFilter').value;
+            const environment = document.getElementById('hiEnvironmentFilter').value;
+
+            let url = `/issues/history/search?page=${page}&page_size=10`;
+            if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+            if (projectId) url += `&project_id=${projectId}`;
+            if (issueType) url += `&issue_type=${issueType}`;
+            if (environment) url += `&environment=${environment}`;
+
+            const res = await api('GET', url);
+            const data = res.data || {};
+            const list = data.list || [];
+
+            if (list.length === 0) {
+                document.getElementById('historyIssuesList').innerHTML =
+                    '<p class="text-muted text-center py-4">未找到历史问题（已解决或已关闭的问题）</p>';
+                document.getElementById('historyIssuesPagination').querySelector('ul').innerHTML = '';
+                return;
+            }
+
+            document.getElementById('historyIssuesList').innerHTML = list.map(issue => `
+                <div class="card mb-3" style="cursor: pointer;" onclick="viewHistoryIssue(${issue.id})">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="badge bg-secondary me-2">${issue.issue_no}</span>
+                                <strong>${escapeHtml(issue.title)}</strong>
+                                ${issue.similarity_score > 0 ? `<span class="badge bg-info ms-2">相似度: ${(issue.similarity_score * 100).toFixed(0)}%</span>` : ''}
+                            </div>
+                            <span class="badge ${getIssueTypeClass(issue.issue_type)}">${issue.issue_type || '-'}</span>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-3"><small class="text-muted">项目：</small>${issue.project_name || '-'}</div>
+                            <div class="col-md-3"><small class="text-muted">环境：</small>${issue.environment || '-'}</div>
+                            <div class="col-md-3"><small class="text-muted">状态：</small><span class="badge ${getStatusClass(issue.status)}">${getStatusName(issue.status)}</span></div>
+                            <div class="col-md-3"><small class="text-muted">解决时间：</small>${issue.resolved_at ? formatDate(issue.resolved_at) : '-'}</div>
+                        </div>
+                        ${issue.root_cause ? `<div class="alert alert-success py-2 mb-0"><strong>根本原因：</strong>${escapeHtml(issue.root_cause.substring(0, 200))}${issue.root_cause.length > 200 ? '...' : ''}</div>` : ''}
+                        ${issue.solution ? `<div class="alert alert-info py-2 mb-0 mt-2"><strong>解决方案：</strong><pre class="mb-0" style="white-space: pre-wrap;">${escapeHtml(issue.solution.substring(0, 300))}${issue.solution.length > 300 ? '...' : ''}</pre></div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            // 分页
+            const totalPages = Math.ceil((data.total || 0) / 10);
+            const paginationUl = document.getElementById('historyIssuesPagination').querySelector('ul');
+            if (totalPages <= 1) {
+                paginationUl.innerHTML = '';
+            } else {
+                let html = '';
+                if (page > 1) {
+                    html += `<li class="page-item"><a class="page-link" href="#" onclick="searchHistoryIssues(${page - 1})">上一页</a></li>`;
+                }
+                for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) {
+                    html += `<li class="page-item ${i === page ? 'active' : ''}"><a class="page-link" href="#" onclick="searchHistoryIssues(${i})">${i}</a></li>`;
+                }
+                if (page < totalPages) {
+                    html += `<li class="page-item"><a class="page-link" href="#" onclick="searchHistoryIssues(${page + 1})">下一页</a></li>`;
+                }
+                paginationUl.innerHTML = html;
+            }
+        }
+
+        // 查看历史问题详情
+        function viewHistoryIssue(id) {
+            viewIssue(id);
+        }
+
+        // 加载相似问题推荐
+        async function loadSimilarIssues(issueId) {
+            const res = await api('GET', `/issues/${issueId}/similar?limit=5`);
+            const list = res.data?.list || [];
+
+            const container = document.getElementById('similarIssuesList');
+            if (list.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center py-2">暂无相似的历史问题</p>';
+                return;
+            }
+
+            container.innerHTML = list.map(issue => `
+                <div class="card mb-2" style="cursor: pointer; border-left: 3px solid #667eea;" onclick="loadIssueDetail(${issue.id})">
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-between">
+                            <small><span class="badge bg-secondary me-1">${issue.issue_no}</span>${escapeHtml(issue.title)}</small>
+                            <span class="badge bg-info">${(issue.similarity_score * 100).toFixed(0)}%</span>
+                        </div>
+                        ${issue.solution ? `<small class="text-muted d-block mt-1">${escapeHtml(issue.solution.substring(0, 100))}...</small>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 获取问题类型样式类
+        function getIssueTypeClass(type) {
+            const classes = {
+                'service_exception': 'bg-danger',
+                'performance_issue': 'bg-warning text-dark',
+                'data_issue': 'bg-info',
+                'dependency_issue': 'bg-secondary',
+                'config_issue': 'bg-primary',
+                'security_issue': 'bg-dark',
+                'other': 'bg-light text-dark'
+            };
+            return classes[type] || 'bg-secondary';
+        }
+
+        // =========== 知识库文档相关函数 ===========
+        
+        let currentKnowledgeDoc = null;
+        let kdCurrentPage = 1;
+        
+        // 加载知识库文档列表
+        async function loadKnowledgeDocs(page = 1) {
+            kdCurrentPage = page;
+            const projectId = document.getElementById('kdProjectFilter').value;
+            const serviceId = document.getElementById('kdServiceFilter').value;
+            const docType = document.getElementById('kdTypeFilter').value;
+            const keyword = document.getElementById('kdSearchKeyword').value;
+
+            let url = `/knowledge-docs?page=${page}&page_size=20`;
+            if (projectId) url += `&project_id=${projectId}`;
+            if (serviceId) url += `&service_id=${serviceId}`;
+            if (docType) url += `&doc_type=${docType}`;
+            if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+
+            const res = await api('GET', url);
+            const data = res.data || {};
+            const list = data.list || [];
+            
+            document.getElementById('kdTableBody').innerHTML = list.map(d => `
+                <tr>
+                    <td><a href="#" onclick="viewKnowledgeDoc(${d.id})">${escapeHtml(d.title)}</a></td>
+                    <td><span class="badge bg-info">${d.doc_type_name || d.doc_type}</span></td>
+                    <td>${d.project_name || '-'}</td>
+                    <td>${d.service_name || '-'}</td>
+                    <td>${d.creator_name || '-'}</td>
+                    <td>v${d.version}</td>
+                    <td><span class="badge ${getVectorStatusClass(d.vector_status)}">${d.vector_status_name || d.vector_status}</span></td>
+                    <td>${formatDate(d.updated_at)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-link" onclick="viewKnowledgeDoc(${d.id})">查看</button>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="9" class="text-center text-muted py-4">暂无文档</td></tr>';
+            
+            // 更新分页
+            document.getElementById('kdPaginationInfo').textContent = `共 ${data.total || 0} 条`;
+            renderKdPagination(data.page, data.total_pages);
+            
+            // 加载筛选下拉框
+            await loadKdFilters();
+        }
+        
+        // 获取向量化状态样式
+        function getVectorStatusClass(status) {
+            const classes = {
+                'pending': 'bg-secondary',
+                'processing': 'bg-warning text-dark',
+                'completed': 'bg-success',
+                'failed': 'bg-danger'
+            };
+            return classes[status] || 'bg-secondary';
+        }
+        
+        // 加载筛选下拉框
+        async function loadKdFilters() {
+            if (projects.length === 0) {
+                const res = await api('GET', '/projects');
+                projects = res.data?.list || [];
+            }
+            
+            // 项目筛选
+            const projectSelect = document.getElementById('kdProjectFilter');
+            if (projectSelect.options.length <= 1) {
+                projectSelect.innerHTML = '<option value="">全部项目</option>' + 
+                    projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            }
+            
+            // 服务筛选
+            if (services.length === 0) {
+                const res = await api('GET', '/services?page_size=100');
+                services = res.data?.list || [];
+            }
+            
+            const serviceSelect = document.getElementById('kdServiceFilter');
+            if (serviceSelect.options.length <= 1) {
+                serviceSelect.innerHTML = '<option value="">全部服务</option>' + 
+                    services.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            }
+            
+            // 表单中的项目服务选择
+            const formProjectSelect = document.getElementById('kdFormProject');
+            if (formProjectSelect.options.length <= 1) {
+                formProjectSelect.innerHTML = '<option value="">无</option>' + 
+                    projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            }
+            
+            const formServiceSelect = document.getElementById('kdFormService');
+            if (formServiceSelect.options.length <= 1) {
+                formServiceSelect.innerHTML = '<option value="">无</option>' + 
+                    services.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            }
+        }
+        
+        // 渲染分页
+        function renderKdPagination(current, total) {
+            const pagination = document.getElementById('kdPagination');
+            if (total <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            if (current > 1) {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="loadKnowledgeDocs(${current-1});return false;">上一页</a></li>`;
+            }
+            
+            for (let i = 1; i <= total; i++) {
+                if (i === 1 || i === total || (i >= current - 2 && i <= current + 2)) {
+                    html += `<li class="page-item ${i === current ? 'active' : ''}"><a class="page-link" href="#" onclick="loadKnowledgeDocs(${i});return false;">${i}</a></li>`;
+                } else if (i === current - 3 || i === current + 3) {
+                    html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                }
+            }
+            
+            if (current < total) {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="loadKnowledgeDocs(${current+1});return false;">下一页</a></li>`;
+            }
+            
+            pagination.innerHTML = html;
+        }
+        
+        // 查看文档
+        async function viewKnowledgeDoc(id) {
+            const res = await api('GET', `/knowledge-docs/${id}`);
+            if (res.code !== 0) {
+                toast(res.message, 'danger');
+                return;
+            }
+            
+            currentKnowledgeDoc = res.data;
+            
+            document.getElementById('kdDetailTitleText').textContent = currentKnowledgeDoc.title;
+            document.getElementById('kdDetailType').textContent = currentKnowledgeDoc.doc_type_name;
+            document.getElementById('kdDetailProject').textContent = currentKnowledgeDoc.project_name || '-';
+            document.getElementById('kdDetailService').textContent = currentKnowledgeDoc.service_name || '-';
+            document.getElementById('kdDetailCreator').textContent = currentKnowledgeDoc.creator_name;
+            document.getElementById('kdDetailVersion').textContent = `v${currentKnowledgeDoc.version}`;
+            document.getElementById('kdDetailVector').innerHTML = `<span class="badge ${getVectorStatusClass(currentKnowledgeDoc.vector_status)}">${currentKnowledgeDoc.vector_status_name || currentKnowledgeDoc.vector_status}</span>`;
+            
+            // 渲染 Markdown 内容
+            const contentEl = document.getElementById('kdDetailContent');
+            if (typeof marked !== 'undefined') {
+                contentEl.innerHTML = marked.parse(currentKnowledgeDoc.content || '');
+            } else {
+                contentEl.textContent = currentKnowledgeDoc.content || '';
+            }
+            
+            // 加载附件
+            const attachRes = await api('GET', `/knowledge-docs/${id}/attachments`);
+            const attachments = attachRes.data || [];
+            document.getElementById('kdDetailAttachments').innerHTML = attachments.length > 0 ?
+                attachments.map(a => `<div class="mb-2 d-flex align-items-center">
+                    <i class="bi bi-paperclip me-2"></i>
+                    <span class="text-primary" style="cursor:pointer;text-decoration:underline;" onclick="downloadAttachment(${id}, ${a.id}, '${a.file_name}')">${a.file_name}</span>
+                    <span class="text-muted ms-2">(${formatFileSize(a.file_size)})</span>
+                </div>`).join('') :
+                '<span class="text-muted">暂无附件</span>';
+            
+            new bootstrap.Modal(document.getElementById('kdDetailModal')).show();
+        }
+        
+        // 显示创建文档弹窗
+        function showKnowledgeDocModal() {
+            document.getElementById('kdFormTitle').textContent = '创建文档';
+            document.getElementById('kdFormId').value = '';
+            document.getElementById('kdFormProject').value = '';
+            document.getElementById('kdFormService').value = '';
+            document.getElementById('kdFormDocType').value = '';
+            document.getElementById('kdFormTitleInput').value = '';
+            document.getElementById('kdFormContent').value = '';
+            document.getElementById('kdFormSummary').value = '';
+            document.getElementById('kdFileList').innerHTML = '';
+            kdSelectedFiles = []; // 清空选中的文件
+
+            loadKdFilters();
+            new bootstrap.Modal(document.getElementById('kdFormModal')).show();
+        }
+        
+        // 编辑文档
+        function editKnowledgeDoc() {
+            if (!currentKnowledgeDoc) return;
+
+            document.getElementById('kdFormTitle').textContent = '编辑文档';
+            document.getElementById('kdFormId').value = currentKnowledgeDoc.id;
+            document.getElementById('kdFormDocType').value = currentKnowledgeDoc.doc_type;
+            document.getElementById('kdFormTitleInput').value = currentKnowledgeDoc.title;
+            document.getElementById('kdFormContent').value = currentKnowledgeDoc.content;
+            document.getElementById('kdFileList').innerHTML = '';
+            kdSelectedFiles = []; // 清空选中的文件
+
+            // 设置项目和服务
+            loadKdFilters().then(() => {
+                document.getElementById('kdFormProject').value = currentKnowledgeDoc.project_id || '';
+                document.getElementById('kdFormService').value = currentKnowledgeDoc.service_id || '';
+            });
+
+            bootstrap.Modal.getInstance(document.getElementById('kdDetailModal')).hide();
+            new bootstrap.Modal(document.getElementById('kdFormModal')).show();
+        }
+        
+        // 保存文档
+        async function saveKnowledgeDoc() {
+            const id = document.getElementById('kdFormId').value;
+            const docType = document.getElementById('kdFormDocType').value;
+            const title = document.getElementById('kdFormTitleInput').value;
+            const content = document.getElementById('kdFormContent').value;
+            const projectId = document.getElementById('kdFormProject').value;
+            const serviceId = document.getElementById('kdFormService').value;
+            const summary = document.getElementById('kdFormSummary').value;
+
+            if (!docType || !title || !content) {
+                toast('请填写必填项', 'warning');
+                return;
+            }
+
+            const data = {
+                doc_type: docType,
+                title: title,
+                content: content,
+                project_id: projectId ? parseInt(projectId) : null,
+                service_id: serviceId ? parseInt(serviceId) : null,
+                change_summary: summary
+            };
+
+            let res;
+            if (id) {
+                res = await api('PUT', `/knowledge-docs/${id}`, data);
+            } else {
+                res = await api('POST', '/knowledge-docs', data);
+            }
+
+            if (res.code !== 0) {
+                toast(res.message, 'danger');
+                return;
+            }
+
+            // 上传附件
+            const docId = id || res.data.id;
+            if (kdSelectedFiles.filter(f => f !== null).length > 0) {
+                toast('正在上传附件...', 'info');
+                await uploadKdAttachments(docId);
+            }
+
+            toast(id ? '文档已更新' : '文档已创建', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('kdFormModal')).hide();
+            loadKnowledgeDocs(kdCurrentPage);
+        }
+        
+        // 删除文档
+        async function deleteKnowledgeDoc() {
+            if (!currentKnowledgeDoc || !confirm('确定要删除这篇文档吗？')) return;
+            
+            const res = await api('DELETE', `/knowledge-docs/${currentKnowledgeDoc.id}`);
+            if (res.code !== 0) {
+                toast(res.message, 'danger');
+                return;
+            }
+            
+            toast('文档已删除', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('kdDetailModal')).hide();
+            loadKnowledgeDocs(kdCurrentPage);
+        }
+        
+        // 查看版本历史
+        async function showKdVersions() {
+            if (!currentKnowledgeDoc) return;
+            
+            const res = await api('GET', `/knowledge-docs/${currentKnowledgeDoc.id}/versions`);
+            const versions = res.data || [];
+            
+            document.getElementById('kdVersionsList').innerHTML = versions.map(v => `
+                <div class="border rounded p-3 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <strong>版本 ${v.version}</strong>
+                        <small class="text-muted">${formatDate(v.created_at)}</small>
+                    </div>
+                    <div class="text-muted small">编辑人: ${v.editor_name}</div>
+                    ${v.change_summary ? `<div class="mt-1"><em>${v.change_summary}</em></div>` : ''}
+                    <button class="btn btn-sm btn-link mt-2" onclick="viewKdVersion(${v.id})">查看内容</button>
+                </div>
+            `).join('') || '<p class="text-muted">暂无版本历史</p>';
+            
+            bootstrap.Modal.getInstance(document.getElementById('kdDetailModal')).hide();
+            new bootstrap.Modal(document.getElementById('kdVersionsModal')).show();
+        }
+        
+        // 查看指定版本内容
+        async function viewKdVersion(versionId) {
+            // 简化实现：版本列表已包含内容
+            const res = await api('GET', `/knowledge-docs/${currentKnowledgeDoc.id}/versions`);
+            const versions = res.data || [];
+            const version = versions.find(v => v.id === versionId);
+            if (version) {
+                alert(`版本 ${version.version} 内容:\n\n${version.content}`);
+            }
+        }
+        
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+        
+        // 设置拖拽上传
+        function setupKdDropZone() {
+            const dropZone = document.getElementById('kdDropZone');
+            const fileInput = document.getElementById('kdFileInput');
+            
+            if (!dropZone || !fileInput) return;
+            
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('bg-light');
+            });
+            
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('bg-light');
+            });
+            
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('bg-light');
+                handleKdFiles(e.dataTransfer.files);
+            });
+            
+            fileInput.addEventListener('change', (e) => {
+                handleKdFiles(e.target.files);
+            });
+        }
+        
+        // 存储选中的附件文件
+        let kdSelectedFiles = [];
+        
+        // 处理上传的文件
+        function handleKdFiles(files) {
+            const fileList = document.getElementById('kdFileList');
+            for (const file of files) {
+                const size = formatFileSize(file.size);
+                const fileIndex = kdSelectedFiles.length;
+                kdSelectedFiles.push(file);
+                fileList.innerHTML += `<div class="alert alert-light py-2 d-flex justify-content-between align-items-center" data-file-index="${fileIndex}">
+                    <span><i class="bi bi-file-text"></i> ${file.name} (${size})</span>
+                    <button class="btn btn-sm btn-link text-danger" onclick="removeKdFile(${fileIndex}, this)">×</button>
+                </div>`;
+            }
+        }
+        
+        // 移除选中的文件
+        function removeKdFile(index, btn) {
+            kdSelectedFiles[index] = null;
+            btn.parentElement.remove();
+        }
+        
+        // 上传附件
+        async function uploadKdAttachments(docId) {
+            const validFiles = kdSelectedFiles.filter(f => f !== null);
+            if (validFiles.length === 0) return;
+            
+            for (const file of validFiles) {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                try {
+                    const response = await fetch(`${API}/knowledge-docs/${docId}/attachments`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+                    const result = await response.json();
+                    if (result.code !== 0) {
+                        console.error('上传附件失败:', file.name, result.message);
+                    }
+                } catch (err) {
+                    console.error('上传附件失败:', file.name, err);
+                }
+            }
+        }
+        
+        // 下载附件
+        async function downloadAttachment(docId, attachmentId, fileName) {
+            try {
+                const response = await fetch(`${API}/knowledge-docs/${docId}/attachments/${attachmentId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    toast('下载失败', 'danger');
+                    return;
+                }
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (err) {
+                console.error('下载失败:', err);
+                toast('下载失败', 'danger');
+            }
+        }
+        
+        // 初始化拖拽
+        document.addEventListener('DOMContentLoaded', setupKdDropZone);
+
+        // 截断文本
+        function truncate(str, len) {
+            if (!str) return '-';
+            return str.length > len ? str.substring(0, len) + '...' : str;
+        }
+
+        // 查看日志详情
+        async function viewLog(id) {
+            const res = await api('GET', `/logs/${id}`);
+            if (res.code !== 0) {
+                toast(res.message, 'danger');
+                return;
+            }
+            currentLog = res.data;
+
+            document.getElementById('logDetailLevel').textContent = currentLog.log_level;
+            document.getElementById('logDetailLevel').className = `badge ${getLogLevelClass(currentLog.log_level)}`;
+            document.getElementById('logDetailEnv').textContent = currentLog.environment;
+            document.getElementById('logDetailTime').textContent = formatDate(currentLog.occurred_at);
+            document.getElementById('logDetailService').textContent = currentLog.service_name;
+            document.getElementById('logDetailTrace').textContent = currentLog.trace_id || '-';
+            document.getElementById('logDetailPath').textContent = currentLog.request_path || '-';
+            document.getElementById('logDetailErrorCode').textContent = currentLog.error_code || '-';
+            document.getElementById('logDetailContent').textContent = currentLog.log_content;
+
+            if (currentLog.stack_trace) {
+                document.getElementById('logDetailStack').textContent = currentLog.stack_trace;
+                document.getElementById('logDetailStackSection').classList.remove('hidden');
+            } else {
+                document.getElementById('logDetailStackSection').classList.add('hidden');
+            }
+
+            // 关联问题
+            if (currentLog.issue_no) {
+                document.getElementById('logDetailIssue').innerHTML = `<a href="#" onclick="viewIssue(${currentLog.issue_id})">${currentLog.issue_no}</a>`;
+            } else {
+                document.getElementById('logDetailIssue').textContent = '未关联';
+            }
+
+            // 加载问题列表用于关联
+            const issueRes = await api('GET', `/issues?page_size=100`);
+            const issueOptions = (issueRes.data?.list || []).map(i => 
+                `<option value="${i.id}" ${currentLog.issue_id === i.id ? 'selected' : ''}>${i.issue_no} - ${i.title}</option>`
+            ).join('');
+            document.getElementById('logLinkIssue').innerHTML = '<option value="">选择问题单关联</option>' + issueOptions;
+
+            showPage('logDetail');
+            document.getElementById('logDetailPage').classList.remove('hidden');
+        }
+
+        // 更新日志模态框的服务列表
+        function updateLogServices() {
+            const projectId = document.getElementById('logProject').value;
+            const projectServices = services.filter(s => s.project_id == projectId);
+            document.getElementById('logService').innerHTML = '<option value="">选择服务</option>' + 
+                projectServices.map(s => `<option value="${s.id}" data-name="${s.name}">${s.name}</option>`).join('');
+        }
+
+        // 创建日志
+        async function createLog() {
+            const serviceSelect = document.getElementById('logService');
+            const serviceOption = serviceSelect.options[serviceSelect.selectedIndex];
+            
+            const res = await api('POST', '/logs', {
+                project_id: parseInt(document.getElementById('logProject').value),
+                service_id: parseInt(document.getElementById('logService').value),
+                service_name: serviceOption?.dataset?.name || '',
+                environment: document.getElementById('logEnvironment').value,
+                log_level: document.getElementById('logLevel').value,
+                trace_id: document.getElementById('logTraceId').value,
+                request_path: document.getElementById('logRequestPath').value,
+                error_code: document.getElementById('logErrorCode').value,
+                log_content: document.getElementById('logContent').value,
+                stack_trace: document.getElementById('logStackTrace').value,
+                occurred_at: document.getElementById('logOccurredAt').value
+            });
+            if (res.code === 0) {
+                toast('日志创建成功');
+                closeModal('logModal');
+                loadLogs();
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 关联日志到问题
+        async function linkLogToIssue() {
+            if (!currentLog) return;
+            const issueId = document.getElementById('logLinkIssue').value;
+            const res = await api('PATCH', `/logs/${currentLog.id}/link-issue`, {
+                issue_id: issueId ? parseInt(issueId) : null
+            });
+            if (res.code === 0) {
+                toast('关联成功');
+                viewLog(currentLog.id);
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 删除日志
+        async function deleteLog() {
+            if (!currentLog || !confirm('确定删除该日志？')) return;
+            const res = await api('DELETE', `/logs/${currentLog.id}`);
+            if (res.code === 0) {
+                toast('已删除');
+                showPage('logs');
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 删除日志（从列表）
+        async function deleteLogById(id) {
+            if (!confirm('确定删除该日志？')) return;
+            const res = await api('DELETE', `/logs/${id}`);
+            if (res.code === 0) {
+                toast('已删除');
+                loadLogs();
+            } else {
+                toast(res.message, 'danger');
+            }
+        }
+
+        // 模态框打开时初始化日志表单
+        document.getElementById('logModal').addEventListener('show.bs.modal', function () {
+            // 设置默认时间为当前时间
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('logOccurredAt').value = now.toISOString().slice(0, 16);
+            
+            // 更新项目下拉框
+            const projectOptions = projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            document.getElementById('logProject').innerHTML = '<option value="">选择项目</option>' + projectOptions;
+            document.getElementById('logService').innerHTML = '<option value="">选择服务</option>';
         });
     </script>
 </body>

@@ -128,6 +128,41 @@ func (h *IssueHandler) GetOperationLogs(c *gin.Context) {
 	response.Success(c, logs)
 }
 
+// SearchHistoryIssues 搜索历史问题
+func (h *IssueHandler) SearchHistoryIssues(c *gin.Context) {
+	var req dto.HistoryIssueQueryRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.BadRequest(c, "参数错误: "+err.Error())
+		return
+	}
+
+	result, err := h.issueService.SearchHistoryIssues(&req)
+	if err != nil {
+		response.InternalError(c, err.Error())
+		return
+	}
+
+	response.Success(c, result)
+}
+
+// GetSimilarIssues 获取相似问题推荐
+func (h *IssueHandler) GetSimilarIssues(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		response.BadRequest(c, "无效的问题ID")
+		return
+	}
+
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "5"))
+	result, err := h.issueService.GetSimilarIssues(id, limit)
+	if err != nil {
+		response.Fail(c, 10004, err.Error())
+		return
+	}
+
+	response.Success(c, result)
+}
+
 type StatusHandler struct {
 	statusService *service.StatusService
 }

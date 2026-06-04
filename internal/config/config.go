@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/viper"
 )
@@ -11,6 +13,7 @@ type Config struct {
 	Database DatabaseConfig `mapstructure:"database"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	Log      LogConfig      `mapstructure:"log"`
+	AI       AIConfig       `mapstructure:"ai"`
 }
 
 type ServerConfig struct {
@@ -40,9 +43,41 @@ type LogConfig struct {
 	Compress   bool   `mapstructure:"compress"`
 }
 
+type AIConfig struct {
+	Enabled bool   `mapstructure:"enabled"`
+	BaseURL string `mapstructure:"base_url"`
+	Timeout int    `mapstructure:"timeout"` // seconds
+}
+
 var GlobalConfig *Config
 
 func Init(configPath string) error {
+	// 如果是相对路径，转换为绝对路径
+	if !filepath.IsAbs(configPath) {
+		absPath, err := filepath.Abs(configPath)
+		if err == nil {
+			configPath = absPath
+		}
+	}
+
+	// 检查文件是否存在
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		// 尝试从工作目录向上查找
+		cwd, _ := os.Getwd()
+		tryPaths := []string{
+			filepath.Join(cwd, configPath),
+			filepath.Join(cwd, "configs", "config.yaml"),
+			filepath.Join(cwd, "..", "configs", "config.yaml"),
+		}
+		
+		for _, tryPath := range tryPaths {
+			if _, err := os.Stat(tryPath); err == nil {
+				configPath = tryPath
+				break
+			}
+		}
+	}
+
 	viper.SetConfigFile(configPath)
 	viper.SetConfigType("yaml")
 

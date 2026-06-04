@@ -63,6 +63,10 @@ func autoMigrate() error {
 		&model.IssueComment{},
 		&model.IssueStatusLog{},
 		&model.IssueOperationLog{},
+		&model.SimulatedLog{},
+		&model.KnowledgeDocument{},
+		&model.KnowledgeDocVersion{},
+		&model.KnowledgeDocAttachment{},
 	)
 }
 
