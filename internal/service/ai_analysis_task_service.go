@@ -1,13 +1,16 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"time"
 
 	"ai_system_oncall/internal/client"
+	"ai_system_oncall/internal/config"
 	"ai_system_oncall/internal/model"
 	"ai_system_oncall/internal/repository"
+	"ai_system_oncall/internal/task"
 
 	"gorm.io/gorm"
 )
@@ -16,6 +19,8 @@ type AIAnalysisTaskService struct {
 	taskRepo   *repository.AIAnalysisTaskRepository
 	issueRepo  *repository.IssueRepository
 	aiClient   *client.AIClient
+	producer   *task.TaskProducer
+	cancelMgr  *task.CancelManager
 }
 
 func NewAIAnalysisTaskService(
@@ -23,11 +28,24 @@ func NewAIAnalysisTaskService(
 	issueRepo *repository.IssueRepository,
 	aiClient *client.AIClient,
 ) *AIAnalysisTaskService {
+	// 初始化 Producer（如果 Asynq 启用）
+	var producer *task.TaskProducer
+	cfg := config.GetConfig()
+	if cfg != nil && cfg.Asynq.Enabled && cfg.Asynq.RedisAddr != "" {
+		producer = task.NewTaskProducer(cfg.Asynq.RedisAddr)
+	}
+
 	return &AIAnalysisTaskService{
 		taskRepo:  taskRepo,
 		issueRepo: issueRepo,
 		aiClient:  aiClient,
+		producer:  producer,
 	}
+}
+
+// SetCancelManager 设置取消管理器
+func (s *AIAnalysisTaskService) SetCancelManager(cancelMgr *task.CancelManager) {
+	s.cancelMgr = cancelMgr
 }
 
 // CreateTask creates a new analysis task
@@ -62,19 +80,35 @@ func (s *AIAnalysisTaskService) CreateTask(issueID uint64) (*model.AIAnalysisTas
 	return task, nil
 }
 
-// GetTask gets a task by ID
-func (s *AIAnalysisTaskService) GetTask(id uint64) (*model.AIAnalysisTask, error) {
-	return s.taskRepo.FindByID(id)
-}
+// EnqueueTask 将任务入队（使用 Asynq）
+func (s *AIAnalysisTaskService) EnqueueTask(taskID, issueID uint64) error {
+	if s.producer == nil {
+		return errors.New("任务队列未启用")
+	}
 
-// GetTasksByIssueID gets tasks by issue ID
-func (s *AIAnalysisTaskService) GetTasksByIssueID(issueID uint64) ([]model.AIAnalysisTask, error) {
-	return s.taskRepo.FindByIssueID(issueID, 10)
+	cfg := config.GetConfig()
+	retryLimit := 3
+	if cfg != nil && cfg.Asynq.RetryLimit > 0 {
+		retryLimit = cfg.Asynq.RetryLimit
+	}
+
+	_, err := s.producer.EnqueueAIAnalysis(taskID, issueID, retryLimit)
+	return err
 }
 
 // CancelTask cancels a task
 func (s *AIAnalysisTaskService) CancelTask(id uint64) error {
-	return s.taskRepo.CancelTask(id)
+	// 更新数据库状态
+	if err := s.taskRepo.CancelTask(id); err != nil {
+		return err
+	}
+
+	// 发布取消信号（通过 Redis Pub/Sub）
+	if s.cancelMgr != nil {
+		s.cancelMgr.PublishCancel(context.Background(), id)
+	}
+
+	return nil
 }
 
 // ExecuteTask executes the analysis task (called by async worker)

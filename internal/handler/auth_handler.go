@@ -28,7 +28,7 @@ func NewAuthHandler(authService *service.AuthService) *AuthHandler {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req dto.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -52,7 +52,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -74,7 +74,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
-		response.Unauthorized(c, "未登录")
+		response.Fail(c, response.CodeUnauthorized, "未登录")
 		return
 	}
 

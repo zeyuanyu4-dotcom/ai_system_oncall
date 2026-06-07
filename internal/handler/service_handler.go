@@ -22,13 +22,13 @@ func NewServiceHandler(serviceService *service.ServiceService) *ServiceHandler {
 func (h *ServiceHandler) CreateService(c *gin.Context) {
 	projectID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的项目ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的项目ID")
 		return
 	}
 
 	var req dto.CreateServiceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -46,7 +46,7 @@ func (h *ServiceHandler) CreateService(c *gin.Context) {
 func (h *ServiceHandler) GetService(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的服务ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的服务ID")
 		return
 	}
 
@@ -63,20 +63,20 @@ func (h *ServiceHandler) GetService(c *gin.Context) {
 func (h *ServiceHandler) ListServices(c *gin.Context) {
 	projectID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的项目ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的项目ID")
 		return
 	}
 
 	var req dto.ServiceListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
 	req.ProjectID = projectID
 	result, err := h.serviceService.ListServices(&req)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -87,13 +87,13 @@ func (h *ServiceHandler) ListServices(c *gin.Context) {
 func (h *ServiceHandler) ListAllServices(c *gin.Context) {
 	var req dto.ServiceListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
 	result, err := h.serviceService.ListAllServices(&req)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -104,13 +104,13 @@ func (h *ServiceHandler) ListAllServices(c *gin.Context) {
 func (h *ServiceHandler) UpdateService(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的服务ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的服务ID")
 		return
 	}
 
 	var req dto.UpdateServiceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -127,7 +127,7 @@ func (h *ServiceHandler) UpdateService(c *gin.Context) {
 func (h *ServiceHandler) DeleteService(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的服务ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的服务ID")
 		return
 	}
 
@@ -151,13 +151,13 @@ func NewServiceAPIHandler(apiService *service.ServiceAPIService) *ServiceAPIHand
 func (h *ServiceAPIHandler) CreateAPI(c *gin.Context) {
 	serviceID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的服务ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的服务ID")
 		return
 	}
 
 	var req dto.CreateServiceAPIRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -174,13 +174,13 @@ func (h *ServiceAPIHandler) CreateAPI(c *gin.Context) {
 func (h *ServiceAPIHandler) ListAPIs(c *gin.Context) {
 	serviceID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的服务ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的服务ID")
 		return
 	}
 
 	apis, err := h.apiService.ListAPIs(serviceID)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -191,13 +191,13 @@ func (h *ServiceAPIHandler) ListAPIs(c *gin.Context) {
 func (h *ServiceAPIHandler) UpdateAPI(c *gin.Context) {
 	apiID, err := strconv.ParseUint(c.Param("api_id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的接口ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的接口ID")
 		return
 	}
 
 	var req dto.UpdateServiceAPIRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -214,7 +214,7 @@ func (h *ServiceAPIHandler) UpdateAPI(c *gin.Context) {
 func (h *ServiceAPIHandler) DeleteAPI(c *gin.Context) {
 	apiID, err := strconv.ParseUint(c.Param("api_id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的接口ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的接口ID")
 		return
 	}
 
@@ -238,13 +238,13 @@ func NewServiceDependencyHandler(depService *service.ServiceDependencyService) *
 func (h *ServiceDependencyHandler) CreateDependency(c *gin.Context) {
 	serviceID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的服务ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的服务ID")
 		return
 	}
 
 	var req dto.CreateServiceDependencyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -261,13 +261,13 @@ func (h *ServiceDependencyHandler) CreateDependency(c *gin.Context) {
 func (h *ServiceDependencyHandler) ListDependencies(c *gin.Context) {
 	serviceID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的服务ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的服务ID")
 		return
 	}
 
 	deps, err := h.depService.ListDependencies(serviceID)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -278,7 +278,7 @@ func (h *ServiceDependencyHandler) ListDependencies(c *gin.Context) {
 func (h *ServiceDependencyHandler) DeleteDependency(c *gin.Context) {
 	depID, err := strconv.ParseUint(c.Param("dependency_id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的依赖ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的依赖ID")
 		return
 	}
 

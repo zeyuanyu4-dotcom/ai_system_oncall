@@ -9,6 +9,28 @@ database:
   password: "12345678"
   dbname: oncall_platform
 
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  db: 0
+
+asynq:
+  redis_addr: "127.0.0.1:6379"
+  concurrency: 10
+  retry_limit: 3
+  timeout: 300  # 秒
+  enabled: true
+
+rabbitmq:
+  url: "amqp://guest:guest@127.0.0.1:5672/"
+  exchange: "analysis.exchange"
+  command_queue: "analysis.command.queue"
+  result_queue: "analysis.result.queue"
+  progress_queue: "analysis.progress.queue"
+  enabled: true
+  gray_percent: 30  # 灰度百分比 (0-100)
+
 jwt:
   secret: your-jwt-secret-key-change-in-production
   expire_time: 24  # hours

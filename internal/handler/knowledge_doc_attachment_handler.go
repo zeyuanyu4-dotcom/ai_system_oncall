@@ -24,13 +24,13 @@ func NewKnowledgeDocAttachmentHandler(attachmentService *service.KnowledgeDocAtt
 func (h *KnowledgeDocAttachmentHandler) UploadAttachment(c *gin.Context) {
 	documentID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的文档ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的文档ID")
 		return
 	}
 
 	file, err := c.FormFile("file")
 	if err != nil {
-		response.BadRequest(c, "请选择要上传的文件")
+		response.Fail(c, response.CodeInvalidParam, "请选择要上传的文件")
 		return
 	}
 
@@ -48,13 +48,13 @@ func (h *KnowledgeDocAttachmentHandler) UploadAttachment(c *gin.Context) {
 func (h *KnowledgeDocAttachmentHandler) GetAttachments(c *gin.Context) {
 	documentID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的文档ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的文档ID")
 		return
 	}
 
 	attachments, err := h.attachmentService.GetAttachments(documentID)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -65,7 +65,7 @@ func (h *KnowledgeDocAttachmentHandler) GetAttachments(c *gin.Context) {
 func (h *KnowledgeDocAttachmentHandler) DownloadAttachment(c *gin.Context) {
 	attachmentID, err := strconv.ParseUint(c.Param("aid"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的附件ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的附件ID")
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *KnowledgeDocAttachmentHandler) DownloadAttachment(c *gin.Context) {
 func (h *KnowledgeDocAttachmentHandler) GetAttachmentContent(c *gin.Context) {
 	attachmentID, err := strconv.ParseUint(c.Param("aid"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的附件ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的附件ID")
 		return
 	}
 
@@ -102,7 +102,7 @@ func (h *KnowledgeDocAttachmentHandler) GetAttachmentContent(c *gin.Context) {
 func (h *KnowledgeDocAttachmentHandler) DeleteAttachment(c *gin.Context) {
 	attachmentID, err := strconv.ParseUint(c.Param("aid"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的附件ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的附件ID")
 		return
 	}
 
@@ -118,13 +118,13 @@ func (h *KnowledgeDocAttachmentHandler) DeleteAttachment(c *gin.Context) {
 func (h *KnowledgeDocAttachmentHandler) ParseAttachmentToContent(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		response.BadRequest(c, "请选择要上传的文件")
+		response.Fail(c, response.CodeInvalidParam, "请选择要上传的文件")
 		return
 	}
 
 	content, err := h.attachmentService.ParseAttachmentToContent(file)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 

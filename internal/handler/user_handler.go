@@ -33,13 +33,13 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 func (h *UserHandler) ListUsers(c *gin.Context) {
 	var req dto.UserListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
 	result, err := h.userService.ListUsers(&req)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -56,7 +56,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 func (h *UserHandler) GetUser(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的用户ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的用户ID")
 		return
 	}
 
@@ -81,13 +81,13 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的用户ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的用户ID")
 		return
 	}
 
 	var req dto.UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -95,7 +95,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	claims, _ := c.Get("claims")
 	userClaims := claims.(*jwt.Claims)
 	if userClaims.UserID != id && userClaims.Role != "system_admin" {
-		response.Forbidden(c, "无权限修改该用户")
+		response.Fail(c, response.CodeForbidden, "无权限修改该用户")
 		return
 	}
 
@@ -120,13 +120,13 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 func (h *UserHandler) UpdateUserStatus(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的用户ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的用户ID")
 		return
 	}
 
 	var req dto.UpdateUserStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -151,7 +151,7 @@ func (h *UserHandler) UpdateUserStatus(c *gin.Context) {
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的用户ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的用户ID")
 		return
 	}
 

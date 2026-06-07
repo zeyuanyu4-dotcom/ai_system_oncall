@@ -1,35 +1,70 @@
 package repository
 
 import (
-	"ai_system_oncall/internal/model"
+	"context"
 	"encoding/json"
 	"time"
+
+	"ai_system_oncall/internal/cache"
+	"ai_system_oncall/internal/model"
 
 	"gorm.io/gorm"
 )
 
 type ReportRepository struct {
 	db *gorm.DB
+	sf *cache.SingleflightCache
 }
 
 func NewReportRepository(db *gorm.DB) *ReportRepository {
-	return &ReportRepository{db: db}
+	return &ReportRepository{
+		db: db,
+		sf: cache.GetSingleflightCache(),
+	}
 }
 
 // Create creates a new report
 func (r *ReportRepository) Create(report *model.Report) error {
-	return r.db.Create(report).Error
+	if err := r.db.Create(report).Error; err != nil {
+		return err
+	}
+	// 失效报告列表缓存
+	ctx := context.Background()
+	r.sf.InvalidateByPattern(ctx, "report:list:*")
+	return nil
 }
 
 // Update updates a report
 func (r *ReportRepository) Update(report *model.Report) error {
-	return r.db.Save(report).Error
+	if err := r.db.Save(report).Error; err != nil {
+		return err
+	}
+	// 失效报告详情和列表缓存
+	ctx := context.Background()
+	r.sf.Invalidate(ctx, cache.KeyReportDetail, report.ID)
+	r.sf.InvalidateByPattern(ctx, "report:list:*")
+	if report.ReportType == model.ReportTypeDaily && report.ReportDate != "" {
+		r.sf.Invalidate(ctx, cache.KeyDailyReport, report.ReportDate)
+	}
+	if report.ReportType == model.ReportTypeWeekly && report.ReportWeek != "" {
+		r.sf.Invalidate(ctx, cache.KeyWeeklyReport, report.ReportWeek)
+	}
+	return nil
 }
 
 // FindByID finds a report by ID
 func (r *ReportRepository) FindByID(id uint64) (*model.Report, error) {
+	ctx := context.Background()
 	var report model.Report
-	err := r.db.Preload("Creator").First(&report, id).Error
+
+	err := r.sf.GetWithLoad(ctx, cache.KeyReportDetail, &report, []interface{}{id}, func() (interface{}, error) {
+		var rp model.Report
+		if err := r.db.Preload("Creator").First(&rp, id).Error; err != nil {
+			return nil, err
+		}
+		return &rp, nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -38,8 +73,17 @@ func (r *ReportRepository) FindByID(id uint64) (*model.Report, error) {
 
 // FindByTypeAndDate finds a report by type and date
 func (r *ReportRepository) FindByTypeAndDate(reportType, date string) (*model.Report, error) {
+	ctx := context.Background()
 	var report model.Report
-	err := r.db.Where("report_type = ? AND report_date = ?", reportType, date).First(&report).Error
+
+	err := r.sf.GetWithLoad(ctx, cache.KeyDailyReport, &report, []interface{}{date}, func() (interface{}, error) {
+		var rp model.Report
+		if err := r.db.Where("report_type = ? AND report_date = ?", reportType, date).First(&rp).Error; err != nil {
+			return nil, err
+		}
+		return &rp, nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -48,8 +92,17 @@ func (r *ReportRepository) FindByTypeAndDate(reportType, date string) (*model.Re
 
 // FindByTypeAndWeek finds a report by type and week
 func (r *ReportRepository) FindByTypeAndWeek(reportType, week string) (*model.Report, error) {
+	ctx := context.Background()
 	var report model.Report
-	err := r.db.Where("report_type = ? AND report_week = ?", reportType, week).First(&report).Error
+
+	err := r.sf.GetWithLoad(ctx, cache.KeyWeeklyReport, &report, []interface{}{week}, func() (interface{}, error) {
+		var rp model.Report
+		if err := r.db.Where("report_type = ? AND report_week = ?", reportType, week).First(&rp).Error; err != nil {
+			return nil, err
+		}
+		return &rp, nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +169,27 @@ func (r *ReportRepository) UpdateStatus(id uint64, status, errorMsg string) erro
 
 // Delete deletes a report
 func (r *ReportRepository) Delete(id uint64) error {
-	return r.db.Delete(&model.Report{}, id).Error
+	// 先获取报告信息用于失效缓存
+	var report model.Report
+	if err := r.db.First(&report, id).Error; err != nil {
+		return r.db.Delete(&model.Report{}, id).Error
+	}
+
+	if err := r.db.Delete(&model.Report{}, id).Error; err != nil {
+		return err
+	}
+
+	// 失效所有相关缓存
+	ctx := context.Background()
+	r.sf.Invalidate(ctx, cache.KeyReportDetail, id)
+	r.sf.InvalidateByPattern(ctx, "report:list:*")
+	if report.ReportType == model.ReportTypeDaily && report.ReportDate != "" {
+		r.sf.Invalidate(ctx, cache.KeyDailyReport, report.ReportDate)
+	}
+	if report.ReportType == model.ReportTypeWeekly && report.ReportWeek != "" {
+		r.sf.Invalidate(ctx, cache.KeyWeeklyReport, report.ReportWeek)
+	}
+	return nil
 }
 
 // GetDailyStats gets daily issue statistics

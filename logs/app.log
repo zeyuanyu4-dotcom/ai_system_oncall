@@ -93,3 +93,6 @@
 {"level":"info","time":"2026-06-04T22:09:37.939+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
 {"level":"info","time":"2026-06-04T22:10:27.065+0800","caller":"server/main.go:85","msg":"Shutting down server..."}
 {"level":"info","time":"2026-06-04T22:10:27.066+0800","caller":"server/main.go:95","msg":"Server exited"}
+{"level":"info","time":"2026-06-05T16:08:24.012+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-07T23:16:30.263+0800","caller":"server/main.go:85","msg":"Shutting down server..."}
+{"level":"info","time":"2026-06-07T23:16:30.273+0800","caller":"server/main.go:95","msg":"Server exited"}

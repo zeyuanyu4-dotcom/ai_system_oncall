@@ -1,38 +1,90 @@
 package repository
 
 import (
+	"context"
+
+	"ai_system_oncall/internal/cache"
 	"ai_system_oncall/internal/model"
 
 	"gorm.io/gorm"
 )
 
 type ServiceRepository struct {
-	db *gorm.DB
+	db  *gorm.DB
+	sf  *cache.SingleflightCache
 }
 
 func NewServiceRepository(db *gorm.DB) *ServiceRepository {
-	return &ServiceRepository{db: db}
+	return &ServiceRepository{
+		db:  db,
+		sf:  cache.GetSingleflightCache(),
+	}
 }
 
 // Create creates a new service
 func (r *ServiceRepository) Create(service *model.Service) error {
-	return r.db.Create(service).Error
+	if err := r.db.Create(service).Error; err != nil {
+		return err
+	}
+	// 失效服务列表缓存
+	ctx := context.Background()
+	r.sf.InvalidateByPattern(ctx, "service:list:*")
+	if service.ProjectID > 0 {
+		r.sf.Invalidate(ctx, cache.KeyProjectServices, service.ProjectID)
+	}
+	return nil
 }
 
 // Update updates a service
 func (r *ServiceRepository) Update(service *model.Service) error {
-	return r.db.Save(service).Error
+	if err := r.db.Save(service).Error; err != nil {
+		return err
+	}
+	// 失效服务详情和列表缓存
+	ctx := context.Background()
+	r.sf.Invalidate(ctx, cache.KeyServiceDetail, service.ID)
+	r.sf.InvalidateByPattern(ctx, "service:list:*")
+	if service.ProjectID > 0 {
+		r.sf.Invalidate(ctx, cache.KeyProjectServices, service.ProjectID)
+	}
+	return nil
 }
 
 // Delete soft deletes a service
 func (r *ServiceRepository) Delete(id uint64) error {
-	return r.db.Delete(&model.Service{}, id).Error
+	// 先获取服务信息用于失效缓存
+	var service model.Service
+	if err := r.db.First(&service, id).Error; err != nil {
+		return err
+	}
+
+	if err := r.db.Delete(&model.Service{}, id).Error; err != nil {
+		return err
+	}
+
+	// 失效所有相关缓存
+	ctx := context.Background()
+	r.sf.Invalidate(ctx, cache.KeyServiceDetail, id)
+	r.sf.InvalidateByPattern(ctx, "service:list:*")
+	if service.ProjectID > 0 {
+		r.sf.Invalidate(ctx, cache.KeyProjectServices, service.ProjectID)
+	}
+	return nil
 }
 
 // FindByID finds a service by ID
 func (r *ServiceRepository) FindByID(id uint64) (*model.Service, error) {
+	ctx := context.Background()
 	var service model.Service
-	err := r.db.Preload("Owner").Preload("Project").First(&service, id).Error
+
+	err := r.sf.GetWithLoad(ctx, cache.KeyServiceDetail, &service, []interface{}{id}, func() (interface{}, error) {
+		var s model.Service
+		if err := r.db.Preload("Owner").Preload("Project").First(&s, id).Error; err != nil {
+			return nil, err
+		}
+		return &s, nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -97,5 +149,23 @@ func (r *ServiceRepository) ListByProjectID(projectID uint64) ([]model.Service, 
 
 // UpdateStatus updates service status
 func (r *ServiceRepository) UpdateStatus(id uint64, status int8) error {
-	return r.db.Model(&model.Service{}).Where("id = ?", id).Update("status", status).Error
+	// 先获取服务信息用于失效缓存
+	var service model.Service
+	if err := r.db.First(&service, id).Error; err != nil {
+		// 如果找不到服务，只更新状态
+		return r.db.Model(&model.Service{}).Where("id = ?", id).Update("status", status).Error
+	}
+
+	if err := r.db.Model(&model.Service{}).Where("id = ?", id).Update("status", status).Error; err != nil {
+		return err
+	}
+
+	// 失效服务详情和列表缓存
+	ctx := context.Background()
+	r.sf.Invalidate(ctx, cache.KeyServiceDetail, id)
+	r.sf.InvalidateByPattern(ctx, "service:list:*")
+	if service.ProjectID > 0 {
+		r.sf.Invalidate(ctx, cache.KeyProjectServices, service.ProjectID)
+	}
+	return nil
 }

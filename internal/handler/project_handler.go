@@ -23,7 +23,7 @@ func NewProjectHandler(projectService *service.ProjectService) *ProjectHandler {
 func (h *ProjectHandler) CreateProject(c *gin.Context) {
 	var req dto.CreateProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -41,7 +41,7 @@ func (h *ProjectHandler) CreateProject(c *gin.Context) {
 func (h *ProjectHandler) GetProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的项目ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的项目ID")
 		return
 	}
 
@@ -58,13 +58,13 @@ func (h *ProjectHandler) GetProject(c *gin.Context) {
 func (h *ProjectHandler) ListProjects(c *gin.Context) {
 	var req dto.ProjectListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
 	result, err := h.projectService.ListProjects(&req)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -75,13 +75,13 @@ func (h *ProjectHandler) ListProjects(c *gin.Context) {
 func (h *ProjectHandler) UpdateProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的项目ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的项目ID")
 		return
 	}
 
 	var req dto.UpdateProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -98,7 +98,7 @@ func (h *ProjectHandler) UpdateProject(c *gin.Context) {
 func (h *ProjectHandler) DeleteProject(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的项目ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的项目ID")
 		return
 	}
 
@@ -122,13 +122,13 @@ func NewProjectMemberHandler(memberService *service.ProjectMemberService) *Proje
 func (h *ProjectMemberHandler) AddMember(c *gin.Context) {
 	projectID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的项目ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的项目ID")
 		return
 	}
 
 	var req dto.AddMemberRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -145,7 +145,7 @@ func (h *ProjectMemberHandler) AddMember(c *gin.Context) {
 func (h *ProjectMemberHandler) ListMembers(c *gin.Context) {
 	projectID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的项目ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的项目ID")
 		return
 	}
 
@@ -154,7 +154,7 @@ func (h *ProjectMemberHandler) ListMembers(c *gin.Context) {
 
 	result, err := h.memberService.ListMembers(projectID, globalRoleFilter)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -165,19 +165,19 @@ func (h *ProjectMemberHandler) ListMembers(c *gin.Context) {
 func (h *ProjectMemberHandler) UpdateMemberRole(c *gin.Context) {
 	projectID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的项目ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的项目ID")
 		return
 	}
 
 	userID, err := strconv.ParseUint(c.Param("user_id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的用户ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的用户ID")
 		return
 	}
 
 	var req dto.UpdateMemberRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -193,13 +193,13 @@ func (h *ProjectMemberHandler) UpdateMemberRole(c *gin.Context) {
 func (h *ProjectMemberHandler) RemoveMember(c *gin.Context) {
 	projectID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的项目ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的项目ID")
 		return
 	}
 
 	userID, err := strconv.ParseUint(c.Param("user_id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的用户ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的用户ID")
 		return
 	}
 

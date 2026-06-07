@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"net/http"
-
 	"ai_system_oncall/internal/response"
 
 	"github.com/gin-gonic/gin"
@@ -19,8 +17,8 @@ func Recovery() gin.HandlerFunc {
 					zap.String("path", c.Request.URL.Path),
 				)
 
-				response.InternalError(c, "服务器内部错误")
-				c.AbortWithStatus(http.StatusInternalServerError)
+				response.Fail(c, response.CodeInternalError, "服务器内部错误")
+				c.Abort()
 			}
 		}()
 		c.Next()

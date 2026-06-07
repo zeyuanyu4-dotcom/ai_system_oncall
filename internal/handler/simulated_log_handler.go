@@ -23,7 +23,7 @@ func NewSimulatedLogHandler(logService *service.SimulatedLogService) *SimulatedL
 func (h *SimulatedLogHandler) CreateLog(c *gin.Context) {
 	var req dto.CreateSimulatedLogRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -51,7 +51,7 @@ func (h *SimulatedLogHandler) CreateLog(c *gin.Context) {
 func (h *SimulatedLogHandler) BatchCreateLogs(c *gin.Context) {
 	var req dto.BatchCreateSimulatedLogRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -81,7 +81,7 @@ func (h *SimulatedLogHandler) BatchCreateLogs(c *gin.Context) {
 func (h *SimulatedLogHandler) GetLog(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的日志ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的日志ID")
 		return
 	}
 
@@ -109,7 +109,7 @@ func (h *SimulatedLogHandler) GetLog(c *gin.Context) {
 func (h *SimulatedLogHandler) ListLogs(c *gin.Context) {
 	var req dto.SimulatedLogListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -128,7 +128,7 @@ func (h *SimulatedLogHandler) ListLogs(c *gin.Context) {
 
 	result, err := h.logService.ListLogs(&req)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -139,13 +139,13 @@ func (h *SimulatedLogHandler) ListLogs(c *gin.Context) {
 func (h *SimulatedLogHandler) GetLogsByTraceID(c *gin.Context) {
 	traceID := c.Param("trace_id")
 	if traceID == "" {
-		response.BadRequest(c, "Trace ID不能为空")
+		response.Fail(c, response.CodeInvalidParam, "Trace ID不能为空")
 		return
 	}
 
 	logs, err := h.logService.GetLogsByTraceID(traceID)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -156,7 +156,7 @@ func (h *SimulatedLogHandler) GetLogsByTraceID(c *gin.Context) {
 func (h *SimulatedLogHandler) GetLogsByService(c *gin.Context) {
 	serviceID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的服务ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的服务ID")
 		return
 	}
 
@@ -165,7 +165,7 @@ func (h *SimulatedLogHandler) GetLogsByService(c *gin.Context) {
 
 	result, err := h.logService.GetLogsByService(serviceID, page, pageSize)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -176,13 +176,13 @@ func (h *SimulatedLogHandler) GetLogsByService(c *gin.Context) {
 func (h *SimulatedLogHandler) LinkIssue(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的日志ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的日志ID")
 		return
 	}
 
 	var req dto.LinkIssueRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -215,7 +215,7 @@ func (h *SimulatedLogHandler) LinkIssue(c *gin.Context) {
 func (h *SimulatedLogHandler) DeleteLog(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的日志ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的日志ID")
 		return
 	}
 
@@ -248,13 +248,13 @@ func (h *SimulatedLogHandler) DeleteLog(c *gin.Context) {
 func (h *SimulatedLogHandler) GetLogsByIssue(c *gin.Context) {
 	issueID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 
 	logs, err := h.logService.GetLogsByIssue(issueID)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 

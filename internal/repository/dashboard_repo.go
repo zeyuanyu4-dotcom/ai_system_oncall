@@ -1,30 +1,55 @@
 package repository
 
 import (
-	"ai_system_oncall/internal/model"
+	"context"
 	"time"
+
+	"ai_system_oncall/internal/cache"
+	"ai_system_oncall/internal/model"
 
 	"gorm.io/gorm"
 )
 
 type DashboardRepository struct {
 	db *gorm.DB
+	sf *cache.SingleflightCache
 }
 
 func NewDashboardRepository(db *gorm.DB) *DashboardRepository {
-	return &DashboardRepository{db: db}
+	return &DashboardRepository{
+		db: db,
+		sf: cache.GetSingleflightCache(),
+	}
 }
 
 // GetStatByDate 获取指定日期的统计数据
 func (r *DashboardRepository) GetStatByDate(date string, projectID *uint64) (*model.StatDailyRecord, error) {
+	ctx := context.Background()
 	var record model.StatDailyRecord
-	query := r.db.Where("stat_date = ?", date)
+
+	// 构建缓存 key parts
+	var keyParts []interface{}
+	keyParts = append(keyParts, date)
 	if projectID != nil {
-		query = query.Where("project_id = ?", *projectID)
+		keyParts = append(keyParts, *projectID)
 	} else {
-		query = query.Where("project_id IS NULL")
+		keyParts = append(keyParts, "all")
 	}
-	err := query.First(&record).Error
+
+	err := r.sf.GetWithLoad(ctx, cache.KeyDashboardStats, &record, keyParts, func() (interface{}, error) {
+		var r model.StatDailyRecord
+		query := r.db.Where("stat_date = ?", date)
+		if projectID != nil {
+			query = query.Where("project_id = ?", *projectID)
+		} else {
+			query = query.Where("project_id IS NULL")
+		}
+		if err := query.First(&r).Error; err != nil {
+			return nil, err
+		}
+		return &r, nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +76,20 @@ func (r *DashboardRepository) CreateStat(record *model.StatDailyRecord) error {
 
 // UpsertStat 创建或更新统计记录
 func (r *DashboardRepository) UpsertStat(record *model.StatDailyRecord) error {
-	return r.db.Save(record).Error
+	if err := r.db.Save(record).Error; err != nil {
+		return err
+	}
+	// 失效统计数据缓存
+	ctx := context.Background()
+	var keyParts []interface{}
+	keyParts = append(keyParts, record.StatDate)
+	if record.ProjectID != nil {
+		keyParts = append(keyParts, *record.ProjectID)
+	} else {
+		keyParts = append(keyParts, "all")
+	}
+	r.sf.Invalidate(ctx, cache.KeyDashboardStats, keyParts...)
+	return nil
 }
 
 // CalculateDailyStats 计算指定日期的统计数据（实时查询）

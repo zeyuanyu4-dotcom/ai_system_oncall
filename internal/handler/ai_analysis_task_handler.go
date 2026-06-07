@@ -30,7 +30,7 @@ func (h *AIAnalysisTaskHandler) CreateTask(c *gin.Context) {
 
 	issueID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 
@@ -40,8 +40,19 @@ func (h *AIAnalysisTaskHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
-	// 异步执行任务
-	go h.taskService.ExecuteTask(task.ID)
+	// 使用 Asynq 入队（替代 go ExecuteTask）
+	cfg := config.GetConfig()
+	if cfg != nil && cfg.Asynq.Enabled {
+		// 新逻辑：入队任务
+		if err := h.taskService.EnqueueTask(task.ID, issueID); err != nil {
+			// 入队失败，记录日志但仍返回成功
+			// Worker 可以通过启动时扫描恢复
+			c.Error(err)
+		}
+	} else {
+		// 兼容逻辑：直接 goroutine 执行（Asynq 未启用时）
+		go h.taskService.ExecuteTask(task.ID)
+	}
 
 	response.Success(c, task)
 }
@@ -50,7 +61,7 @@ func (h *AIAnalysisTaskHandler) CreateTask(c *gin.Context) {
 func (h *AIAnalysisTaskHandler) GetTask(c *gin.Context) {
 	taskID, err := strconv.ParseUint(c.Param("task_id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的任务ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的任务ID")
 		return
 	}
 
@@ -67,7 +78,7 @@ func (h *AIAnalysisTaskHandler) GetTask(c *gin.Context) {
 func (h *AIAnalysisTaskHandler) GetIssueTasks(c *gin.Context) {
 	issueID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 
@@ -84,7 +95,7 @@ func (h *AIAnalysisTaskHandler) GetIssueTasks(c *gin.Context) {
 func (h *AIAnalysisTaskHandler) CancelTask(c *gin.Context) {
 	taskID, err := strconv.ParseUint(c.Param("task_id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的任务ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的任务ID")
 		return
 	}
 
@@ -100,7 +111,7 @@ func (h *AIAnalysisTaskHandler) CancelTask(c *gin.Context) {
 func (h *AIAnalysisTaskHandler) UpdateTaskProgress(c *gin.Context) {
 	taskID, err := strconv.ParseUint(c.Param("task_id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的任务ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的任务ID")
 		return
 	}
 
@@ -110,7 +121,7 @@ func (h *AIAnalysisTaskHandler) UpdateTaskProgress(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误")
+		response.Fail(c, response.CodeInvalidParam, "参数错误")
 		return
 	}
 

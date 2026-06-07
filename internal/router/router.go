@@ -91,7 +91,7 @@ func SetupRouter() *gin.Engine {
 	public := r.Group("/api")
 	{
 		public.POST("/auth/register", authHandler.Register)
-		public.POST("/auth/login", authHandler.Login)
+		public.POST("/auth/login", middleware.LoginRateLimit(), authHandler.Login)
 	}
 
 	// Protected routes (auth required)
@@ -187,29 +187,30 @@ func SetupRouter() *gin.Engine {
 		protected.PUT("/knowledge-docs/:id", knowledgeDocHandler.UpdateDocument)
 		protected.DELETE("/knowledge-docs/:id", knowledgeDocHandler.DeleteDocument)
 		protected.PUT("/knowledge-docs/:id/vector-status", knowledgeDocHandler.UpdateVectorStatus)
-		protected.POST("/knowledge-docs/:id/vectorize", knowledgeDocHandler.TriggerVectorization)
+		protected.POST("/knowledge-docs/:id/vectorize", middleware.VectorizeRateLimit(), knowledgeDocHandler.TriggerVectorization)
 		protected.GET("/knowledge-docs/:id/versions", knowledgeDocHandler.GetVersions)
 		// Knowledge Documents by project
 		protected.GET("/projects/:id/knowledge-docs", knowledgeDocHandler.GetDocumentsByProject)
 		// Knowledge Documents by service
 		protected.GET("/services/:id/knowledge-docs", knowledgeDocHandler.GetDocumentsByService)
-		// Knowledge Document Attachments
-		protected.POST("/knowledge-docs/:id/attachments", knowledgeDocAttachmentHandler.UploadAttachment)
+		// Knowledge Document Attachments (with upload rate limit)
+		protected.POST("/knowledge-docs/:id/attachments", middleware.UploadRateLimit(), knowledgeDocAttachmentHandler.UploadAttachment)
 		protected.GET("/knowledge-docs/:id/attachments", knowledgeDocAttachmentHandler.GetAttachments)
 		protected.GET("/knowledge-docs/:id/attachments/:aid", knowledgeDocAttachmentHandler.DownloadAttachment)
 		protected.GET("/knowledge-docs/:id/attachments/:aid/content", knowledgeDocAttachmentHandler.GetAttachmentContent)
 		protected.DELETE("/knowledge-docs/:id/attachments/:aid", knowledgeDocAttachmentHandler.DeleteAttachment)
 		protected.POST("/knowledge-docs/parse-attachment", knowledgeDocAttachmentHandler.ParseAttachmentToContent)
 
-		// AI Analysis
-		protected.POST("/issues/:id/ai-analysis", aiHandler.AnalyzeIssue)
+		// AI Analysis (with rate limit)
+		protected.POST("/issues/:id/ai-analysis", middleware.AIAnalysisRateLimit(), aiHandler.AnalyzeIssue)
 		protected.GET("/ai/status", aiHandler.AIAnalysisStatus)
 
-		// AI Agent Analysis Tasks
-		protected.POST("/issues/:id/agent-tasks", aiTaskHandler.CreateTask)
+		// AI Agent Analysis Tasks (with rate limit)
+		protected.POST("/issues/:id/agent-tasks", middleware.AIAnalysisRateLimit(), aiTaskHandler.CreateTask)
 		protected.GET("/issues/:id/agent-tasks", aiTaskHandler.GetIssueTasks)
 		protected.GET("/agent-tasks/:task_id", aiTaskHandler.GetTask)
 		protected.POST("/agent-tasks/:task_id/cancel", aiTaskHandler.CancelTask)
+		protected.POST("/agent-tasks/:task_id/progress", aiTaskHandler.UpdateTaskProgress)
 
 		// Reports
 		protected.POST("/reports/daily", reportHandler.GenerateDailyReport)

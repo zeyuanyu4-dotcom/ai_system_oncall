@@ -15,7 +15,7 @@ func JWTAuth() gin.HandlerFunc {
 		// Get token from header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			response.Unauthorized(c, "未登录或Token无效")
+			response.Fail(c, response.CodeUnauthorized, "未登录或Token无效")
 			c.Abort()
 			return
 		}
@@ -23,7 +23,7 @@ func JWTAuth() gin.HandlerFunc {
 		// Check Bearer prefix
 		parts := strings.SplitN(authHeader, " ", 2)
 		if !(len(parts) == 2 && parts[0] == "Bearer") {
-			response.Unauthorized(c, "Token格式错误")
+			response.Fail(c, response.CodeUnauthorized, "Token格式错误")
 			c.Abort()
 			return
 		}
@@ -33,7 +33,7 @@ func JWTAuth() gin.HandlerFunc {
 		// Parse token
 		claims, err := jwt.ParseToken(tokenString)
 		if err != nil {
-			response.Unauthorized(c, "Token无效或已过期")
+			response.Fail(c, response.CodeUnauthorized, "Token无效或已过期")
 			c.Abort()
 			return
 		}

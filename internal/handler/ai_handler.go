@@ -36,7 +36,7 @@ func (h *AIHandler) AnalyzeIssue(c *gin.Context) {
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 

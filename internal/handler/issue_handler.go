@@ -23,7 +23,7 @@ func NewIssueHandler(issueService *service.IssueService) *IssueHandler {
 func (h *IssueHandler) CreateIssue(c *gin.Context) {
 	var req dto.CreateIssueRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -41,7 +41,7 @@ func (h *IssueHandler) CreateIssue(c *gin.Context) {
 func (h *IssueHandler) GetIssue(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 
@@ -58,13 +58,13 @@ func (h *IssueHandler) GetIssue(c *gin.Context) {
 func (h *IssueHandler) ListIssues(c *gin.Context) {
 	var req dto.IssueListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
 	result, err := h.issueService.ListIssues(&req)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -75,13 +75,13 @@ func (h *IssueHandler) ListIssues(c *gin.Context) {
 func (h *IssueHandler) UpdateIssue(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 
 	var req dto.UpdateIssueRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -99,7 +99,7 @@ func (h *IssueHandler) UpdateIssue(c *gin.Context) {
 func (h *IssueHandler) DeleteIssue(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 
@@ -115,13 +115,13 @@ func (h *IssueHandler) DeleteIssue(c *gin.Context) {
 func (h *IssueHandler) GetOperationLogs(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 
 	logs, err := h.issueService.GetOperationLogs(id)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -132,13 +132,13 @@ func (h *IssueHandler) GetOperationLogs(c *gin.Context) {
 func (h *IssueHandler) SearchHistoryIssues(c *gin.Context) {
 	var req dto.HistoryIssueQueryRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
 	result, err := h.issueService.SearchHistoryIssues(&req)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -149,7 +149,7 @@ func (h *IssueHandler) SearchHistoryIssues(c *gin.Context) {
 func (h *IssueHandler) GetSimilarIssues(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 
@@ -175,13 +175,13 @@ func NewStatusHandler(statusService *service.StatusService) *StatusHandler {
 func (h *StatusHandler) AssignIssue(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 
 	var req dto.AssignIssueRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -200,13 +200,13 @@ func (h *StatusHandler) AssignIssue(c *gin.Context) {
 func (h *StatusHandler) ChangeStatus(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 
 	var req dto.ChangeStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -225,13 +225,13 @@ func (h *StatusHandler) ChangeStatus(c *gin.Context) {
 func (h *StatusHandler) GetStatusLogs(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 
 	logs, err := h.statusService.GetStatusLogs(id)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -250,13 +250,13 @@ func NewCommentHandler(commentService *service.CommentService) *CommentHandler {
 func (h *CommentHandler) CreateComment(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 
 	var req dto.CreateCommentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -274,14 +274,14 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 func (h *CommentHandler) ListComments(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的问题ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的问题ID")
 		return
 	}
 
 	commentType := c.Query("comment_type")
 	result, err := h.commentService.ListComments(id, commentType)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -292,7 +292,7 @@ func (h *CommentHandler) ListComments(c *gin.Context) {
 func (h *CommentHandler) DeleteComment(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的评论ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的评论ID")
 		return
 	}
 

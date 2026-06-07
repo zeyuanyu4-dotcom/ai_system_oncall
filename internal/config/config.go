@@ -11,6 +11,9 @@ import (
 type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
+	Redis    RedisConfig    `mapstructure:"redis"`
+	Asynq    AsynqConfig    `mapstructure:"asynq"`
+	RabbitMQ RabbitMQConfig `mapstructure:"rabbitmq"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	Log      LogConfig      `mapstructure:"log"`
 	AI       AIConfig       `mapstructure:"ai"`
@@ -27,6 +30,31 @@ type DatabaseConfig struct {
 	User     string `mapstructure:"user"`
 	Password string `mapstructure:"password"`
 	DBName   string `mapstructure:"dbname"`
+}
+
+type RedisConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Password string `mapstructure:"password"`
+	DB       int    `mapstructure:"db"`
+}
+
+type AsynqConfig struct {
+	RedisAddr   string `mapstructure:"redis_addr"`
+	Concurrency int    `mapstructure:"concurrency"`
+	RetryLimit  int    `mapstructure:"retry_limit"`
+	Timeout     int    `mapstructure:"timeout"` // 秒
+	Enabled     bool   `mapstructure:"enabled"` // 功能开关
+}
+
+type RabbitMQConfig struct {
+	URL           string `mapstructure:"url"`
+	Exchange      string `mapstructure:"exchange"`
+	CommandQueue  string `mapstructure:"command_queue"`
+	ResultQueue   string `mapstructure:"result_queue"`
+	ProgressQueue string `mapstructure:"progress_queue"`
+	Enabled       bool   `mapstructure:"enabled"`        // MQ 功能开关
+	GrayPercent   int    `mapstructure:"gray_percent"`   // 灰度百分比 (0-100)
 }
 
 type JWTConfig struct {

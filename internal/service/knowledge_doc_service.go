@@ -449,5 +449,24 @@ func (s *KnowledgeDocService) vectorizeDocument(docID uint64, title, docType, pr
 		return fmt.Errorf("向量化服务错误: %s", string(respBody))
 	}
 
+	// 解析响应体，检查 code 字段
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("读取向量化响应失败: %w", err)
+	}
+
+	var result struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+		Data    any    `json:"data"`
+	}
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return fmt.Errorf("解析向量化响应失败: %w", err)
+	}
+
+	if result.Code != 0 {
+		return fmt.Errorf("向量化失败: %s (code=%d)", result.Message, result.Code)
+	}
+
 	return nil
 }

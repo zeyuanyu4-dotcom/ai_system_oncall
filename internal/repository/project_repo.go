@@ -1,38 +1,79 @@
 package repository
 
 import (
+	"context"
+
+	"ai_system_oncall/internal/cache"
 	"ai_system_oncall/internal/model"
 
 	"gorm.io/gorm"
 )
 
 type ProjectRepository struct {
-	db *gorm.DB
+	db  *gorm.DB
+	sf  *cache.SingleflightCache
 }
 
 func NewProjectRepository(db *gorm.DB) *ProjectRepository {
-	return &ProjectRepository{db: db}
+	return &ProjectRepository{
+		db:  db,
+		sf:  cache.GetSingleflightCache(),
+	}
 }
 
 // Create creates a new project
 func (r *ProjectRepository) Create(project *model.Project) error {
-	return r.db.Create(project).Error
+	if err := r.db.Create(project).Error; err != nil {
+		return err
+	}
+	// 失效项目列表缓存
+	ctx := context.Background()
+	r.sf.InvalidateByPattern(ctx, "project:list:*")
+	r.sf.InvalidateByPattern(ctx, "project:user:*")
+	return nil
 }
 
 // Update updates a project
 func (r *ProjectRepository) Update(project *model.Project) error {
-	return r.db.Save(project).Error
+	if err := r.db.Save(project).Error; err != nil {
+		return err
+	}
+	// 失效项目详情和列表缓存
+	ctx := context.Background()
+	r.sf.Invalidate(ctx, cache.KeyProjectDetail, project.ID)
+	r.sf.InvalidateByPattern(ctx, "project:list:*")
+	r.sf.InvalidateByPattern(ctx, "project:user:*")
+	return nil
 }
 
 // Delete soft deletes a project
 func (r *ProjectRepository) Delete(id uint64) error {
-	return r.db.Delete(&model.Project{}, id).Error
+	if err := r.db.Delete(&model.Project{}, id).Error; err != nil {
+		return err
+	}
+	// 失效所有相关缓存
+	ctx := context.Background()
+	r.sf.Invalidate(ctx, cache.KeyProjectDetail, id)
+	r.sf.InvalidateByPattern(ctx, "project:list:*")
+	r.sf.InvalidateByPattern(ctx, "project:user:*")
+	// 同时失效该项目下的服务缓存
+	r.sf.InvalidateByPattern(ctx, "service:project:*")
+	return nil
 }
 
 // FindByID finds a project by ID
 func (r *ProjectRepository) FindByID(id uint64) (*model.Project, error) {
+	ctx := context.Background()
 	var project model.Project
-	err := r.db.Preload("Owner").Preload("Creator").First(&project, id).Error
+
+	err := r.sf.GetWithLoad(ctx, cache.KeyProjectDetail, &project, []interface{}{id}, func() (interface{}, error) {
+		var p model.Project
+		if err := r.db.Preload("Owner").Preload("Creator").First(&p, id).Error; err != nil {
+			return nil, err
+		}
+		return &p, nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -96,5 +137,13 @@ func (r *ProjectRepository) ListByUserID(userID uint64) ([]model.Project, error)
 
 // UpdateStatus updates project status
 func (r *ProjectRepository) UpdateStatus(id uint64, status int8) error {
-	return r.db.Model(&model.Project{}).Where("id = ?", id).Update("status", status).Error
+	if err := r.db.Model(&model.Project{}).Where("id = ?", id).Update("status", status).Error; err != nil {
+		return err
+	}
+	// 失效项目详情和列表缓存
+	ctx := context.Background()
+	r.sf.Invalidate(ctx, cache.KeyProjectDetail, id)
+	r.sf.InvalidateByPattern(ctx, "project:list:*")
+	r.sf.InvalidateByPattern(ctx, "project:user:*")
+	return nil
 }

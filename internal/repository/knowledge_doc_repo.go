@@ -1,43 +1,80 @@
 package repository
 
 import (
+	"context"
 	"strings"
 
 	"gorm.io/gorm"
 
+	"ai_system_oncall/internal/cache"
 	"ai_system_oncall/internal/model"
 )
 
 // KnowledgeDocRepository 知识库文档仓库
 type KnowledgeDocRepository struct {
 	db *gorm.DB
+	sf *cache.SingleflightCache
 }
 
 // NewKnowledgeDocRepository 创建知识库文档仓库
 func NewKnowledgeDocRepository(db *gorm.DB) *KnowledgeDocRepository {
-	return &KnowledgeDocRepository{db: db}
+	return &KnowledgeDocRepository{
+		db: db,
+		sf: cache.GetSingleflightCache(),
+	}
 }
 
 // Create 创建文档
 func (r *KnowledgeDocRepository) Create(doc *model.KnowledgeDocument) error {
-	return r.db.Create(doc).Error
+	if err := r.db.Create(doc).Error; err != nil {
+		return err
+	}
+	// 失效文档列表缓存
+	ctx := context.Background()
+	r.sf.InvalidateByPattern(ctx, "knowledge:list:*")
+	return nil
 }
 
 // Update 更新文档
 func (r *KnowledgeDocRepository) Update(doc *model.KnowledgeDocument) error {
-	return r.db.Save(doc).Error
+	if err := r.db.Save(doc).Error; err != nil {
+		return err
+	}
+	// 失效文档详情和列表缓存
+	ctx := context.Background()
+	r.sf.Invalidate(ctx, cache.KeyKnowledgeDocDetail, doc.ID)
+	r.sf.InvalidateByPattern(ctx, "knowledge:list:*")
+	r.sf.InvalidateByPattern(ctx, "knowledge:search:*")
+	return nil
 }
 
 // Delete 软删除文档
 func (r *KnowledgeDocRepository) Delete(id uint64) error {
-	return r.db.Delete(&model.KnowledgeDocument{}, id).Error
+	if err := r.db.Delete(&model.KnowledgeDocument{}, id).Error; err != nil {
+		return err
+	}
+	// 失效所有相关缓存
+	ctx := context.Background()
+	r.sf.Invalidate(ctx, cache.KeyKnowledgeDocDetail, id)
+	r.sf.InvalidateByPattern(ctx, "knowledge:list:*")
+	r.sf.InvalidateByPattern(ctx, "knowledge:search:*")
+	return nil
 }
 
 // FindByID 根据ID查询
 func (r *KnowledgeDocRepository) FindByID(id uint64) (*model.KnowledgeDocument, error) {
+	ctx := context.Background()
 	var doc model.KnowledgeDocument
-	err := r.db.Preload("Project").Preload("Service").Preload("Creator").Preload("Updater").
-		First(&doc, id).Error
+
+	err := r.sf.GetWithLoad(ctx, cache.KeyKnowledgeDocDetail, &doc, []interface{}{id}, func() (interface{}, error) {
+		var d model.KnowledgeDocument
+		if err := r.db.Preload("Project").Preload("Service").Preload("Creator").Preload("Updater").
+			First(&d, id).Error; err != nil {
+			return nil, err
+		}
+		return &d, nil
+	})
+
 	if err != nil {
 		return nil, err
 	}

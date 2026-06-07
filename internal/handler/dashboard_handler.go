@@ -35,7 +35,7 @@ func (h *DashboardHandler) GetDashboardStats(c *gin.Context) {
 func (h *DashboardHandler) GetTrendData(c *gin.Context) {
 	var req dto.TrendQueryRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 

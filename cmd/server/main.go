@@ -10,8 +10,10 @@ import (
 	"syscall"
 	"time"
 
+	"ai_system_oncall/internal/cache"
 	"ai_system_oncall/internal/config"
 	"ai_system_oncall/internal/database"
+	"ai_system_oncall/internal/middleware"
 	"ai_system_oncall/internal/router"
 	"ai_system_oncall/pkg/jwt"
 	"ai_system_oncall/pkg/logger"
@@ -57,6 +59,21 @@ func main() {
 		logger.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer database.Close()
+
+	// Initialize Redis cache
+	if err := cache.Init(zap.L()); err != nil {
+		logger.Warnf("Redis cache initialization failed (running without cache): %v", err)
+	}
+	defer func() {
+		if c := cache.GetCache(); c != nil {
+			c.Close()
+		}
+	}()
+
+	// Initialize rate limiter
+	if err := middleware.InitRateLimiter(zap.L()); err != nil {
+		logger.Warnf("Rate limiter initialization failed: %v", err)
+	}
 
 	// Setup router
 	r := router.SetupRouter()

@@ -41,7 +41,7 @@ func (h *ReportHandler) GenerateDailyReport(c *gin.Context) {
 func (h *ReportHandler) GetDailyReport(c *gin.Context) {
 	date := c.Param("date")
 	if date == "" {
-		response.BadRequest(c, "请指定日期")
+		response.Fail(c, response.CodeInvalidParam, "请指定日期")
 		return
 	}
 
@@ -86,7 +86,7 @@ func (h *ReportHandler) GenerateWeeklyReport(c *gin.Context) {
 func (h *ReportHandler) GetWeeklyReport(c *gin.Context) {
 	weekStart := c.Param("week")
 	if weekStart == "" {
-		response.BadRequest(c, "请指定周开始日期")
+		response.Fail(c, response.CodeInvalidParam, "请指定周开始日期")
 		return
 	}
 
@@ -103,7 +103,7 @@ func (h *ReportHandler) GetWeeklyReport(c *gin.Context) {
 func (h *ReportHandler) GenerateIncidentReview(c *gin.Context) {
 	var req dto.GenerateIncidentReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请选择需要复盘的问题单")
+		response.Fail(c, response.CodeInvalidParam, "请选择需要复盘的问题单")
 		return
 	}
 
@@ -121,7 +121,7 @@ func (h *ReportHandler) GenerateIncidentReview(c *gin.Context) {
 func (h *ReportHandler) GetIncidentReview(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的报告ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的报告ID")
 		return
 	}
 
@@ -138,13 +138,13 @@ func (h *ReportHandler) GetIncidentReview(c *gin.Context) {
 func (h *ReportHandler) ListReports(c *gin.Context) {
 	var req dto.ReportListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.BadRequest(c, "参数错误")
+		response.Fail(c, response.CodeInvalidParam, "参数错误")
 		return
 	}
 
 	result, err := h.reportService.ListReports(&req)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -155,7 +155,7 @@ func (h *ReportHandler) ListReports(c *gin.Context) {
 func (h *ReportHandler) GetReport(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的报告ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的报告ID")
 		return
 	}
 

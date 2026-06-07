@@ -25,7 +25,7 @@ func NewKnowledgeDocHandler(docService *service.KnowledgeDocService) *KnowledgeD
 func (h *KnowledgeDocHandler) CreateDocument(c *gin.Context) {
 	var req dto.CreateKnowledgeDocRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -43,13 +43,13 @@ func (h *KnowledgeDocHandler) CreateDocument(c *gin.Context) {
 func (h *KnowledgeDocHandler) ListDocuments(c *gin.Context) {
 	var req dto.KnowledgeDocListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
 	result, err := h.docService.ListDocuments(&req)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *KnowledgeDocHandler) ListDocuments(c *gin.Context) {
 func (h *KnowledgeDocHandler) GetDocument(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的文档ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的文档ID")
 		return
 	}
 
@@ -77,13 +77,13 @@ func (h *KnowledgeDocHandler) GetDocument(c *gin.Context) {
 func (h *KnowledgeDocHandler) UpdateDocument(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的文档ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的文档ID")
 		return
 	}
 
 	var req dto.UpdateKnowledgeDocRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -101,7 +101,7 @@ func (h *KnowledgeDocHandler) UpdateDocument(c *gin.Context) {
 func (h *KnowledgeDocHandler) DeleteDocument(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的文档ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的文档ID")
 		return
 	}
 
@@ -120,13 +120,13 @@ func (h *KnowledgeDocHandler) SearchDocuments(c *gin.Context) {
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 
 	if keyword == "" {
-		response.BadRequest(c, "请提供搜索关键词")
+		response.Fail(c, response.CodeInvalidParam, "请提供搜索关键词")
 		return
 	}
 
 	result, err := h.docService.SearchDocuments(keyword, page, pageSize)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -137,7 +137,7 @@ func (h *KnowledgeDocHandler) SearchDocuments(c *gin.Context) {
 func (h *KnowledgeDocHandler) GetDocumentsByProject(c *gin.Context) {
 	projectID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的项目ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的项目ID")
 		return
 	}
 
@@ -146,7 +146,7 @@ func (h *KnowledgeDocHandler) GetDocumentsByProject(c *gin.Context) {
 
 	result, err := h.docService.GetDocumentsByProject(projectID, page, pageSize)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -157,7 +157,7 @@ func (h *KnowledgeDocHandler) GetDocumentsByProject(c *gin.Context) {
 func (h *KnowledgeDocHandler) GetDocumentsByService(c *gin.Context) {
 	serviceID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的服务ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的服务ID")
 		return
 	}
 
@@ -166,7 +166,7 @@ func (h *KnowledgeDocHandler) GetDocumentsByService(c *gin.Context) {
 
 	result, err := h.docService.GetDocumentsByService(serviceID, page, pageSize)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -181,7 +181,7 @@ func (h *KnowledgeDocHandler) GetDocumentsByType(c *gin.Context) {
 
 	result, err := h.docService.GetDocumentsByType(docType, page, pageSize)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -192,13 +192,13 @@ func (h *KnowledgeDocHandler) GetDocumentsByType(c *gin.Context) {
 func (h *KnowledgeDocHandler) UpdateVectorStatus(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的文档ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的文档ID")
 		return
 	}
 
 	var req dto.UpdateVectorStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "参数错误: "+err.Error())
+		response.Fail(c, response.CodeInvalidParam, "参数错误: "+err.Error())
 		return
 	}
 
@@ -214,13 +214,13 @@ func (h *KnowledgeDocHandler) UpdateVectorStatus(c *gin.Context) {
 func (h *KnowledgeDocHandler) GetVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的文档ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的文档ID")
 		return
 	}
 
 	versions, err := h.docService.GetVersions(id)
 	if err != nil {
-		response.InternalError(c, err.Error())
+		response.Fail(c, response.CodeInternalError, err.Error())
 		return
 	}
 
@@ -231,7 +231,7 @@ func (h *KnowledgeDocHandler) GetVersions(c *gin.Context) {
 func (h *KnowledgeDocHandler) TriggerVectorization(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的文档ID")
+		response.Fail(c, response.CodeInvalidParam, "无效的文档ID")
 		return
 	}
 
