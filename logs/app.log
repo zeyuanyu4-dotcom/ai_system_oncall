@@ -96,3 +96,11 @@
 {"level":"info","time":"2026-06-05T16:08:24.012+0800","caller":"server/main.go:74","msg":"Starting server on port 8080"}
 {"level":"info","time":"2026-06-07T23:16:30.263+0800","caller":"server/main.go:85","msg":"Shutting down server..."}
 {"level":"info","time":"2026-06-07T23:16:30.273+0800","caller":"server/main.go:95","msg":"Server exited"}
+{"level":"warn","time":"2026-06-08T11:10:05.272+0800","caller":"server/main.go:65","msg":"Redis cache initialization failed (running without cache): failed to connect to Redis: dial tcp 127.0.0.1:6379: connect: connection refused"}
+{"level":"warn","time":"2026-06-08T11:11:02.027+0800","caller":"server/main.go:65","msg":"Redis cache initialization failed (running without cache): failed to connect to Redis: dial tcp 127.0.0.1:6379: connect: connection refused"}
+{"level":"info","time":"2026-06-08T11:11:02.103+0800","caller":"server/main.go:91","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-08T11:23:35.829+0800","caller":"server/main.go:102","msg":"Shutting down server..."}
+{"level":"warn","time":"2026-06-08T11:24:34.055+0800","caller":"server/main.go:65","msg":"Redis cache initialization failed (running without cache): failed to connect to Redis: dial tcp 127.0.0.1:6379: connect: connection refused"}
+{"level":"info","time":"2026-06-08T11:24:34.132+0800","caller":"server/main.go:91","msg":"Starting server on port 8080"}
+{"level":"info","time":"2026-06-08T11:25:41.079+0800","caller":"server/main.go:102","msg":"Shutting down server..."}
+{"level":"info","time":"2026-06-08T11:25:41.080+0800","caller":"server/main.go:112","msg":"Server exited"}

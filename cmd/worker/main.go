@@ -12,6 +12,7 @@ import (
 	"ai_system_oncall/internal/client"
 	"ai_system_oncall/internal/config"
 	"ai_system_oncall/internal/database"
+	"ai_system_oncall/internal/grpcclient"
 	"ai_system_oncall/internal/model"
 	"ai_system_oncall/internal/mq"
 	"ai_system_oncall/internal/repository"
@@ -100,14 +101,27 @@ func main() {
 	taskRepo := repository.NewAIAnalysisTaskRepository(database.GetDB())
 	issueRepo := repository.NewIssueRepository(database.GetDB())
 
-	// 初始化 AI 客户端
-	aiClient := client.NewAIClient()
+	// 初始化 AI 客户端（HTTP 兜底）
+	aiClient := client.NewAIClient(&cfg.AI)
+
+	// 初始化 gRPC Agent 客户端（优先走 gRPC streaming）
+	var grpcAgent *grpcclient.AgentClient
+	if cfg.AI.GRPCAddr != "" {
+		var err error
+		grpcAgent, err = grpcclient.NewAgentClient(cfg.AI.GRPCAddr, cfg.AI.GRPCTimeout)
+		if err != nil {
+			logger.Warnf("Failed to connect to Agent gRPC, fallback to HTTP: %v", err)
+		} else {
+			logger.Infof("Agent gRPC client connected to %s", cfg.AI.GRPCAddr)
+		}
+	}
 
 	// 创建任务处理器
 	handler := task.NewAIAnalysisHandler(
 		taskRepo,
 		issueRepo,
 		aiClient,
+		grpcAgent,
 		mqClient,
 		cancelMgr,
 		zap.L(),
@@ -166,6 +180,9 @@ func main() {
 	// 优雅关闭
 	srv.Shutdown()
 	cancelCancel()
+	if grpcAgent != nil {
+		grpcAgent.Close()
+	}
 
 	logger.Info("Worker exited")
 }
@@ -202,7 +219,10 @@ func recoverPendingTasks(taskRepo *repository.AIAnalysisTaskRepository) error {
 		}
 
 		// 重新入队
-		_, err := producer.EnqueueAIAnalysis(t.ID, t.IssueID, cfg.Asynq.RetryLimit)
+		// 注意：原 user JWT 不会落库（也不应该落），恢复时无法还原。
+		// 传空串让任务继续跑——LLM 主体分析能完成，但内部工具调用会 401。
+		// 如需严格"无 token 不跑"，把 userToken 改成一个 sentinel 并在 worker 端拒绝。
+		_, err := producer.EnqueueAIAnalysis(t.ID, t.IssueID, "", cfg.Asynq.RetryLimit)
 		if err != nil {
 			logger.Errorf("Failed to re-enqueue task %d: %v", t.ID, err)
 			continue

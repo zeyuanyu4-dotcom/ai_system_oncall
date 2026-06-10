@@ -1,19 +1,14 @@
 package router
 
 import (
-	"ai_system_oncall/internal/client"
-	"ai_system_oncall/internal/config"
-	"ai_system_oncall/internal/database"
 	"ai_system_oncall/internal/handler"
 	"ai_system_oncall/internal/middleware"
-	"ai_system_oncall/internal/repository"
-	"ai_system_oncall/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
 
-// SetupRouter initializes all routes
-func SetupRouter() *gin.Engine {
+// SetupRouterWithServices 接收已初始化的 service 列表（供 HTTP + gRPC 共用）
+func SetupRouterWithServices(svcs *Services) *gin.Engine {
 	r := gin.New()
 
 	// Middlewares
@@ -25,67 +20,24 @@ func SetupRouter() *gin.Engine {
 	r.StaticFile("/", "./web/index.html")
 	r.StaticFile("/index.html", "./web/index.html")
 
-	// Initialize repositories
-	userRepo := repository.NewUserRepository(database.GetDB())
-	projectRepo := repository.NewProjectRepository(database.GetDB())
-	projectMemberRepo := repository.NewProjectMemberRepository(database.GetDB())
-	serviceRepo := repository.NewServiceRepository(database.GetDB())
-	serviceAPIRepo := repository.NewServiceAPIRepository(database.GetDB())
-	serviceDependencyRepo := repository.NewServiceDependencyRepository(database.GetDB())
-	issueRepo := repository.NewIssueRepository(database.GetDB())
-	commentRepo := repository.NewCommentRepository(database.GetDB())
-	statusLogRepo := repository.NewStatusLogRepository(database.GetDB())
-	operationLogRepo := repository.NewOperationLogRepository(database.GetDB())
-	simulatedLogRepo := repository.NewSimulatedLogRepository(database.GetDB())
-	knowledgeDocRepo := repository.NewKnowledgeDocRepository(database.GetDB())
-	knowledgeDocVersionRepo := repository.NewKnowledgeDocVersionRepository(database.GetDB())
-	knowledgeDocAttachmentRepo := repository.NewKnowledgeDocAttachmentRepository(database.GetDB())
-	aiAnalysisTaskRepo := repository.NewAIAnalysisTaskRepository(database.GetDB())
-	reportRepo := repository.NewReportRepository(database.GetDB())
-	dashboardRepo := repository.NewDashboardRepository(database.GetDB())
-
-	// Initialize services
-	authService := service.NewAuthService(userRepo)
-	userService := service.NewUserService(userRepo)
-	projectService := service.NewProjectService(projectRepo, projectMemberRepo, userRepo)
-	projectMemberService := service.NewProjectMemberService(projectMemberRepo, projectRepo, userRepo)
-	serviceService := service.NewServiceService(serviceRepo, projectRepo)
-	serviceAPIService := service.NewServiceAPIService(serviceAPIRepo, serviceRepo)
-	serviceDependencyService := service.NewServiceDependencyService(serviceDependencyRepo, serviceRepo)
-	issueService := service.NewIssueService(issueRepo, projectRepo, projectMemberRepo, serviceRepo, statusLogRepo, operationLogRepo)
-	statusService := service.NewStatusService(issueRepo, projectMemberRepo, statusLogRepo, operationLogRepo, userRepo)
-	commentService := service.NewCommentService(commentRepo, issueRepo, operationLogRepo)
-	simulatedLogService := service.NewSimulatedLogService(simulatedLogRepo, projectRepo, serviceRepo, issueRepo, projectMemberRepo)
-	knowledgeDocService := service.NewKnowledgeDocService(knowledgeDocRepo, knowledgeDocVersionRepo, projectRepo, serviceRepo)
-	knowledgeDocAttachmentService := service.NewKnowledgeDocAttachmentService(knowledgeDocAttachmentRepo, knowledgeDocRepo)
-
-	// Initialize AI client
-	var aiClient *client.AIClient
-	if config.GetConfig() != nil && config.GetConfig().AI.Enabled {
-		aiClient = client.NewAIClient(&config.GetConfig().AI)
-	}
-	aiAnalysisTaskService := service.NewAIAnalysisTaskService(aiAnalysisTaskRepo, issueRepo, aiClient)
-	reportService := service.NewReportService(reportRepo, issueRepo, serviceRepo, aiClient)
-	dashboardService := service.NewDashboardService(dashboardRepo, projectMemberRepo, projectRepo)
-
-	// Initialize handlers
-	authHandler := handler.NewAuthHandler(authService)
-	userHandler := handler.NewUserHandler(userService)
-	projectHandler := handler.NewProjectHandler(projectService)
-	projectMemberHandler := handler.NewProjectMemberHandler(projectMemberService)
-	serviceHandler := handler.NewServiceHandler(serviceService)
-	serviceAPIHandler := handler.NewServiceAPIHandler(serviceAPIService)
-	serviceDependencyHandler := handler.NewServiceDependencyHandler(serviceDependencyService)
-	issueHandler := handler.NewIssueHandler(issueService)
-	statusHandler := handler.NewStatusHandler(statusService)
-	commentHandler := handler.NewCommentHandler(commentService)
-	simulatedLogHandler := handler.NewSimulatedLogHandler(simulatedLogService)
-	knowledgeDocHandler := handler.NewKnowledgeDocHandler(knowledgeDocService)
-	knowledgeDocAttachmentHandler := handler.NewKnowledgeDocAttachmentHandler(knowledgeDocAttachmentService)
-	aiHandler := handler.NewAIHandler(issueService, aiClient)
-	aiTaskHandler := handler.NewAIAnalysisTaskHandler(aiAnalysisTaskService)
-	reportHandler := handler.NewReportHandler(reportService)
-	dashboardHandler := handler.NewDashboardHandler(dashboardService)
+	// Initialize handlers (复用已初始化的 service)
+	authHandler := handler.NewAuthHandler(svcs.AuthService)
+	userHandler := handler.NewUserHandler(svcs.UserService)
+	projectHandler := handler.NewProjectHandler(svcs.ProjectService)
+	projectMemberHandler := handler.NewProjectMemberHandler(svcs.ProjectMemberService)
+	serviceHandler := handler.NewServiceHandler(svcs.ServiceService)
+	serviceAPIHandler := handler.NewServiceAPIHandler(svcs.ServiceAPIService)
+	serviceDependencyHandler := handler.NewServiceDependencyHandler(svcs.ServiceDependencyService)
+	issueHandler := handler.NewIssueHandler(svcs.IssueService)
+	statusHandler := handler.NewStatusHandler(svcs.StatusService)
+	commentHandler := handler.NewCommentHandler(svcs.CommentService)
+	simulatedLogHandler := handler.NewSimulatedLogHandler(svcs.SimulatedLogService)
+	knowledgeDocHandler := handler.NewKnowledgeDocHandler(svcs.KnowledgeDocService)
+	knowledgeDocAttachmentHandler := handler.NewKnowledgeDocAttachmentHandler(svcs.KnowledgeDocAttachmentService)
+	aiHandler := handler.NewAIHandler(svcs.IssueService, svcs.AIClient)
+	aiTaskHandler := handler.NewAIAnalysisTaskHandler(svcs.AIAnalysisTaskService)
+	reportHandler := handler.NewReportHandler(svcs.ReportService)
+	dashboardHandler := handler.NewDashboardHandler(svcs.DashboardService)
 
 	// Public routes (no auth required)
 	public := r.Group("/api")
@@ -230,4 +182,9 @@ func SetupRouter() *gin.Engine {
 	}
 
 	return r
+}
+
+// SetupRouter 兼容旧接口（自行初始化全部 service）
+func SetupRouter() *gin.Engine {
+	return SetupRouterWithServices(InitServices())
 }

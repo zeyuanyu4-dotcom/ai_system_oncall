@@ -81,7 +81,7 @@ func (s *AIAnalysisTaskService) CreateTask(issueID uint64) (*model.AIAnalysisTas
 }
 
 // EnqueueTask 将任务入队（使用 Asynq）
-func (s *AIAnalysisTaskService) EnqueueTask(taskID, issueID uint64) error {
+func (s *AIAnalysisTaskService) EnqueueTask(taskID, issueID uint64, userToken string) error {
 	if s.producer == nil {
 		return errors.New("任务队列未启用")
 	}
@@ -92,7 +92,7 @@ func (s *AIAnalysisTaskService) EnqueueTask(taskID, issueID uint64) error {
 		retryLimit = cfg.Asynq.RetryLimit
 	}
 
-	_, err := s.producer.EnqueueAIAnalysis(taskID, issueID, retryLimit)
+	_, err := s.producer.EnqueueAIAnalysis(taskID, issueID, userToken, retryLimit)
 	return err
 }
 
@@ -112,7 +112,7 @@ func (s *AIAnalysisTaskService) CancelTask(id uint64) error {
 }
 
 // ExecuteTask executes the analysis task (called by async worker)
-func (s *AIAnalysisTaskService) ExecuteTask(taskID uint64) error {
+func (s *AIAnalysisTaskService) ExecuteTask(taskID uint64, userToken string) error {
 	task, err := s.taskRepo.FindByID(taskID)
 	if err != nil {
 		return err
@@ -162,7 +162,7 @@ func (s *AIAnalysisTaskService) ExecuteTask(taskID uint64) error {
 		req.ServiceName = issue.Service.Name
 	}
 
-	result, err := s.aiClient.AgentAnalyze(req)
+	result, err := s.aiClient.AgentAnalyze(req, userToken)
 	if err != nil {
 		s.markTaskFailed(task, err.Error())
 		return err
@@ -202,4 +202,14 @@ func (s *AIAnalysisTaskService) markTaskFailed(task *model.AIAnalysisTask, errMs
 // UpdateTaskProgress updates task progress (called by Python agent)
 func (s *AIAnalysisTaskService) UpdateTaskProgress(id uint64, progress, currentStep string) error {
 	return s.taskRepo.UpdateProgress(id, progress, currentStep)
+}
+
+// GetTask 根据 ID 获取任务
+func (s *AIAnalysisTaskService) GetTask(id uint64) (*model.AIAnalysisTask, error) {
+	return s.taskRepo.FindByID(id)
+}
+
+// GetTasksByIssueID 获取某问题下的任务列表
+func (s *AIAnalysisTaskService) GetTasksByIssueID(issueID uint64) ([]model.AIAnalysisTask, error) {
+	return s.taskRepo.FindByIssueID(issueID, 50)
 }

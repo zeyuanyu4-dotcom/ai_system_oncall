@@ -41,7 +41,7 @@ func (s *SingleflightCache) GetWithLoad(
 	fullKey := s.cache.buildKey(key, keyParts...)
 
 	// 使用 singleflight 防止击穿
-	result, err, shared := s.group.Do(fullKey, func() (interface{}, error) {
+	result, err, _ := s.group.Do(fullKey, func() (interface{}, error) {
 		// 双重检查：在 singleflight 内部再次检查缓存
 		// 防止其他 goroutine 已经设置了缓存
 		var tempData json.RawMessage
@@ -162,7 +162,13 @@ var sfOnce sync.Once
 // GetSingleflightCache 获取全局 Singleflight 缓存实例
 func GetSingleflightCache() *SingleflightCache {
 	sfOnce.Do(func() {
-		globalSF = NewSingleflightCache(globalCache, globalCache.logger)
+		// globalCache 可能为 nil（cache.Init 在无 Redis 配置时早返回）
+		// SingleflightCache 的方法已对 s.cache == nil 做兜底（直接走 loader）
+		if globalCache == nil {
+			globalSF = &SingleflightCache{cache: nil, logger: nil}
+		} else {
+			globalSF = NewSingleflightCache(globalCache, globalCache.logger)
+		}
 	})
 	return globalSF
 }

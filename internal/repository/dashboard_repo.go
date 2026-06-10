@@ -37,17 +37,17 @@ func (r *DashboardRepository) GetStatByDate(date string, projectID *uint64) (*mo
 	}
 
 	err := r.sf.GetWithLoad(ctx, cache.KeyDashboardStats, &record, keyParts, func() (interface{}, error) {
-		var r model.StatDailyRecord
+		var stat model.StatDailyRecord
 		query := r.db.Where("stat_date = ?", date)
 		if projectID != nil {
 			query = query.Where("project_id = ?", *projectID)
 		} else {
 			query = query.Where("project_id IS NULL")
 		}
-		if err := query.First(&r).Error; err != nil {
+		if err := query.First(&stat).Error; err != nil {
 			return nil, err
 		}
-		return &r, nil
+		return &stat, nil
 	})
 
 	if err != nil {

@@ -20,8 +20,9 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port int    `mapstructure:"port"`
-	Mode string `mapstructure:"mode"`
+	Port     int    `mapstructure:"port"`
+	GRPCPort int    `mapstructure:"grpc_port"` // gRPC 端口（0=不启用）
+	Mode     string `mapstructure:"mode"`
 }
 
 type DatabaseConfig struct {
@@ -72,9 +73,11 @@ type LogConfig struct {
 }
 
 type AIConfig struct {
-	Enabled bool   `mapstructure:"enabled"`
-	BaseURL string `mapstructure:"base_url"`
-	Timeout int    `mapstructure:"timeout"` // seconds
+	Enabled       bool   `mapstructure:"enabled"`
+	BaseURL       string `mapstructure:"base_url"`        // Python Agent HTTP（兜底 / 健康检查）
+	GRPCAddr      string `mapstructure:"grpc_addr"`       // Python Agent gRPC 地址（worker 直连）
+	Timeout       int    `mapstructure:"timeout"`         // HTTP 超时（秒）
+	GRPCTimeout   int    `mapstructure:"grpc_timeout"`    // gRPC 默认超时（秒）
 }
 
 var GlobalConfig *Config

@@ -179,7 +179,7 @@ func (c *AIClient) AnalyzeIssue(req *IssueAnalysisRequest) (*AnalysisResult, err
 }
 
 // AgentAnalyze Agent深度分析
-func (c *AIClient) AgentAnalyze(req *AgentAnalysisRequest) (*AgentResult, error) {
+func (c *AIClient) AgentAnalyze(req *AgentAnalysisRequest, userToken string) (*AgentResult, error) {
 	url := fmt.Sprintf("%s/api/agent/analyze", c.baseURL)
 
 	body, err := json.Marshal(req)
@@ -195,6 +195,11 @@ func (c *AIClient) AgentAnalyze(req *AgentAnalysisRequest) (*AgentResult, error)
 		return nil, fmt.Errorf("create request failed: %w", err)
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
+
+	// 透传用户 JWT，让 Python Agent 内部工具能以此身份访问受保护接口
+	if userToken != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+userToken)
+	}
 
 	resp, err := client.Do(httpReq)
 	if err != nil {

@@ -7,11 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	agentv1 "ai_system_oncall/api/proto/agent/v1"
 	"ai_system_oncall/internal/client"
 	"ai_system_oncall/internal/config"
+	"ai_system_oncall/internal/grpcclient"
 	"ai_system_oncall/internal/mq"
 	"ai_system_oncall/internal/model"
 	"ai_system_oncall/internal/repository"
+	"ai_system_oncall/pkg/jwt"
 
 	"github.com/hibiken/asynq"
 	"go.uber.org/zap"
@@ -22,6 +25,7 @@ type AIAnalysisHandler struct {
 	taskRepo   *repository.AIAnalysisTaskRepository
 	issueRepo  *repository.IssueRepository
 	aiClient   *client.AIClient
+	grpcAgent  *grpcclient.AgentClient // 【新增】gRPC 直连 Agent
 	mqClient   *mq.RabbitMQClient
 	cancelMgr  *CancelManager
 	logger     *zap.Logger
@@ -33,6 +37,7 @@ func NewAIAnalysisHandler(
 	taskRepo *repository.AIAnalysisTaskRepository,
 	issueRepo *repository.IssueRepository,
 	aiClient *client.AIClient,
+	grpcAgent *grpcclient.AgentClient,
 	mqClient *mq.RabbitMQClient,
 	cancelMgr *CancelManager,
 	logger *zap.Logger,
@@ -42,6 +47,7 @@ func NewAIAnalysisHandler(
 		taskRepo:  taskRepo,
 		issueRepo: issueRepo,
 		aiClient:  aiClient,
+		grpcAgent: grpcAgent,
 		mqClient:  mqClient,
 		cancelMgr: cancelMgr,
 		logger:    logger,
@@ -80,10 +86,12 @@ func (h *AIAnalysisHandler) ProcessTask(ctx context.Context, t *asynq.Task) erro
 
 	taskID := payload.TaskID
 	issueID := payload.IssueID
+	userToken := payload.UserToken
 
 	h.logger.Info("Processing AI analysis task",
 		zap.Uint64("task_id", taskID),
-		zap.Uint64("issue_id", issueID))
+		zap.Uint64("issue_id", issueID),
+		zap.Bool("has_user_token", userToken != ""))
 
 	// 检查是否已取消
 	if h.cancelMgr.IsCancelled(taskID) {
@@ -132,12 +140,16 @@ func (h *AIAnalysisHandler) ProcessTask(ctx context.Context, t *asynq.Task) erro
 		return execErr
 	}
 
-	// HTTP 方式：直接调用 Agent
-	// 创建带超时的上下文
-	timeoutCtx, cancel := context.WithTimeout(ctx, h.timeout)
-	defer cancel()
+	// 判断走 gRPC 还是 HTTP 兜底
+	if h.grpcAgent != nil {
+		result, execErr = h.executeAnalysisGRPC(ctx, task, issueID, userToken)
+	} else {
+		// HTTP 方式：直接调用 Agent（兜底/兼容）
+		timeoutCtx, cancel := context.WithTimeout(ctx, h.timeout)
+		defer cancel()
 
-	result, execErr = h.executeAnalysisHTTP(timeoutCtx, task, issueID)
+		result, execErr = h.executeAnalysisHTTP(timeoutCtx, task, issueID, userToken)
+	}
 
 	// 再次检查取消状态
 	if h.cancelMgr.IsCancelled(taskID) {
@@ -203,7 +215,7 @@ func (h *AIAnalysisHandler) executeViaMQ(ctx context.Context, task *model.AIAnal
 }
 
 // executeAnalysisHTTP 通过 HTTP 执行分析（原有逻辑）
-func (h *AIAnalysisHandler) executeAnalysisHTTP(ctx context.Context, task *model.AIAnalysisTask, issueID uint64) (*mq.AnalysisResult, error) {
+func (h *AIAnalysisHandler) executeAnalysisHTTP(ctx context.Context, task *model.AIAnalysisTask, issueID uint64, userToken string) (*mq.AnalysisResult, error) {
 	// 获取问题信息
 	issue, err := h.issueRepo.FindByID(issueID)
 	if err != nil {
@@ -213,6 +225,16 @@ func (h *AIAnalysisHandler) executeAnalysisHTTP(ctx context.Context, task *model
 	// 检查取消
 	if h.cancelMgr.IsCancelled(task.ID) {
 		return nil, errors.New("task cancelled")
+	}
+
+	// 校验用户 JWT：撤销或过期后，已入队任务不应再继续（防止撤销不及时）
+	if userToken != "" {
+		if _, err := jwt.ParseToken(userToken); err != nil {
+			h.logger.Warn("User token invalid or expired, abort task",
+				zap.Uint64("task_id", task.ID),
+				zap.Error(err))
+			return nil, fmt.Errorf("user token invalid/expired: %w", err)
+		}
 	}
 
 	// 构建请求
@@ -239,11 +261,11 @@ func (h *AIAnalysisHandler) executeAnalysisHTTP(ctx context.Context, task *model
 	}
 
 	// 调用 Agent（带超时）
-	resultChan := make(chan *client.AgentAnalysisResult, 1)
+	resultChan := make(chan *client.AgentResult, 1)
 	errChan := make(chan error, 1)
 
 	go func() {
-		result, err := h.aiClient.AgentAnalyze(req)
+		result, err := h.aiClient.AgentAnalyze(req, userToken)
 		if err != nil {
 			errChan <- err
 		} else {
@@ -263,14 +285,118 @@ func (h *AIAnalysisHandler) executeAnalysisHTTP(ctx context.Context, task *model
 			Summary: agentResult.Summary,
 			Result: map[string]interface{}{
 				"summary":     agentResult.Summary,
-				"root_cause":  agentResult.RootCause,
-				"solutions":   agentResult.Solutions,
+				"root_cause":  agentResult.SuspectedCause,
+				"solutions":   agentResult.Suggestions,
 				"tool_calls":  agentResult.ToolCalls,
 			},
 		}, nil
 	case err := <-errChan:
 		return nil, err
 	}
+}
+
+// executeAnalysisGRPC 通过 gRPC streaming 执行分析
+func (h *AIAnalysisHandler) executeAnalysisGRPC(ctx context.Context, task *model.AIAnalysisTask, issueID uint64, userToken string) (*mq.AnalysisResult, error) {
+	issue, err := h.issueRepo.FindByID(issueID)
+	if err != nil {
+		return nil, fmt.Errorf("find issue failed: %w", err)
+	}
+
+	if h.cancelMgr.IsCancelled(task.ID) {
+		return nil, errors.New("task cancelled")
+	}
+
+	// JWT 前置校验
+	if userToken != "" {
+		if _, err := jwt.ParseToken(userToken); err != nil {
+			h.logger.Warn("User token invalid or expired, abort task", zap.Uint64("task_id", task.ID), zap.Error(err))
+			return nil, fmt.Errorf("user token invalid/expired: %w", err)
+		}
+	}
+
+	req := &agentv1.RunAgentRequest{
+		TaskId:       int64(task.ID),
+		IssueId:      int64(issue.ID),
+		IssueNo:      issue.IssueNo,
+		Title:        issue.Title,
+		Description:  issue.Description,
+		ErrorMessage: issue.ErrorMessage,
+		LogExcerpt:   issue.LogExcerpt,
+		Environment:  issue.Environment,
+		ProjectId:    issue.ProjectID,
+		ProjectName:  "",
+		ServiceName:  "",
+		ImpactScope:  issue.ImpactScope,
+	}
+	if issue.Project != nil {
+		req.ProjectName = issue.Project.Name
+	}
+	if issue.Service != nil {
+		req.ServiceName = issue.Service.Name
+	}
+
+	stream, err := h.grpcAgent.RunAgent(ctx, req, userToken)
+	if err != nil {
+		return nil, fmt.Errorf("start gRPC RunAgent failed: %w", err)
+	}
+
+	var finalResult *mq.AnalysisResult
+	for {
+		resp, err := stream.Recv()
+		if err != nil {
+			return nil, fmt.Errorf("gRPC stream recv error: %w", err)
+		}
+
+		switch ev := resp.Event.(type) {
+		case *agentv1.RunAgentResponse_Progress:
+			// 进度事件：写 DB + 打日志
+			h.logger.Info("Agent progress",
+				zap.Uint64("task_id", task.ID),
+				zap.Int32("step", ev.Progress.Step),
+				zap.String("message", ev.Progress.Message))
+			// 简化为：更新当前 step
+			p := fmt.Sprintf("%d/8", ev.Progress.Step)
+			h.taskRepo.UpdateProgress(task.ID, p, ev.Progress.Message)
+
+		case *agentv1.RunAgentResponse_Result:
+			// 最终结果
+			r := ev.Result
+			finalResult = &mq.AnalysisResult{
+				TaskID:  task.ID,
+				IssueID: issueID,
+				Success: true,
+				Summary: r.Summary,
+				Result: map[string]interface{}{
+					"summary":     r.Summary,
+					"issue_type":  r.IssueType,
+					"root_cause":  r.SuspectedCause,
+					"solutions":   r.Suggestions,
+					"confidence":  r.Confidence,
+					"tool_calls":  agentToolCallsToInterface(r.ToolCalls),
+				},
+			}
+			return finalResult, nil
+
+		case *agentv1.RunAgentResponse_Error:
+			return nil, fmt.Errorf("agent analysis error: %s - %s", ev.Error.Code, ev.Error.Message)
+		}
+	}
+}
+
+func agentToolCallsToInterface(tcs []*agentv1.ToolCallRecord) []interface{} {
+	out := make([]interface{}, len(tcs))
+	for i, tc := range tcs {
+		out[i] = map[string]interface{}{
+			"step":       tc.Step,
+			"tool_name":  tc.ToolName,
+			"input":      tc.Input,
+			"output":     tc.Output,
+			"thought":    tc.Thought,
+			"executed_at": tc.ExecutedAt,
+			"duration_ms": tc.DurationMs,
+		}
+	}
+	return out
 }
 
 // completeTask 完成任务（HTTP 方式）

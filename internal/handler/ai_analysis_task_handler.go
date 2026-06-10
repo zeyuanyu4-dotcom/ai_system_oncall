@@ -2,6 +2,7 @@ package handler
 
 import (
 	"strconv"
+	"strings"
 
 	"ai_system_oncall/internal/config"
 	"ai_system_oncall/internal/response"
@@ -40,18 +41,24 @@ func (h *AIAnalysisTaskHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
+	// 提取用户 JWT，用于在异步链路中透传给 Python Agent
+	userToken := ""
+	if auth := c.GetHeader("Authorization"); strings.HasPrefix(auth, "Bearer ") {
+		userToken = strings.TrimPrefix(auth, "Bearer ")
+	}
+
 	// 使用 Asynq 入队（替代 go ExecuteTask）
 	cfg := config.GetConfig()
 	if cfg != nil && cfg.Asynq.Enabled {
 		// 新逻辑：入队任务
-		if err := h.taskService.EnqueueTask(task.ID, issueID); err != nil {
+		if err := h.taskService.EnqueueTask(task.ID, issueID, userToken); err != nil {
 			// 入队失败，记录日志但仍返回成功
 			// Worker 可以通过启动时扫描恢复
 			c.Error(err)
 		}
 	} else {
 		// 兼容逻辑：直接 goroutine 执行（Asynq 未启用时）
-		go h.taskService.ExecuteTask(task.ID)
+		go h.taskService.ExecuteTask(task.ID, userToken)
 	}
 
 	response.Success(c, task)

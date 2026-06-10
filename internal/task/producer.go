@@ -17,15 +17,17 @@ const CancelChannel = "task:cancel"
 
 // AIAnalysisPayload AI 分析任务载荷
 type AIAnalysisPayload struct {
-	TaskID  uint64 `json:"task_id"`
-	IssueID uint64 `json:"issue_id"`
+	TaskID    uint64 `json:"task_id"`
+	IssueID   uint64 `json:"issue_id"`
+	UserToken string `json:"user_token,omitempty"` // 透传给 Python Agent 的用户 JWT
 }
 
 // NewAIAnalysisTask 创建 AI 分析任务
-func NewAIAnalysisTask(taskID, issueID uint64) (*asynq.Task, error) {
+func NewAIAnalysisTask(taskID, issueID uint64, userToken string) (*asynq.Task, error) {
 	payload, err := json.Marshal(AIAnalysisPayload{
-		TaskID:  taskID,
-		IssueID: issueID,
+		TaskID:    taskID,
+		IssueID:   issueID,
+		UserToken: userToken,
 	})
 	if err != nil {
 		return nil, err
@@ -46,8 +48,8 @@ func NewTaskProducer(redisAddr string) *TaskProducer {
 }
 
 // EnqueueAIAnalysis 入队 AI 分析任务
-func (p *TaskProducer) EnqueueAIAnalysis(taskID, issueID uint64, retryLimit int) (*asynq.TaskInfo, error) {
-	task, err := NewAIAnalysisTask(taskID, issueID)
+func (p *TaskProducer) EnqueueAIAnalysis(taskID, issueID uint64, userToken string, retryLimit int) (*asynq.TaskInfo, error) {
+	task, err := NewAIAnalysisTask(taskID, issueID, userToken)
 	if err != nil {
 		return nil, fmt.Errorf("create task failed: %w", err)
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/ulule/limiter/v3"
 	limiter_redis "github.com/ulule/limiter/v3/drivers/store/redis"
+	limiter_memory "github.com/ulule/limiter/v3/drivers/store/memory"
 	"go.uber.org/zap"
 )
 
@@ -35,7 +36,7 @@ var globalLimiter *RateLimiter
 // InitRateLimiter 初始化限流器
 func InitRateLimiter(logger *zap.Logger) error {
 	// 创建本地限流器（降级使用）
-	localStore := limiter.NewMemoryStore()
+	localStore := limiter_memory.NewStore()
 	localLimiter := limiter.New(localStore, limiter.Rate{
 		Period: time.Hour,
 		Limit:  int64(20), // 默认本地限流阈值

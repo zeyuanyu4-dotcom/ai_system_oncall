@@ -13,10 +13,14 @@ import (
 	"ai_system_oncall/internal/cache"
 	"ai_system_oncall/internal/config"
 	"ai_system_oncall/internal/database"
+	"ai_system_oncall/internal/grpcserver"
 	"ai_system_oncall/internal/middleware"
 	"ai_system_oncall/internal/router"
 	"ai_system_oncall/pkg/jwt"
 	"ai_system_oncall/pkg/logger"
+
+	toolingv1 "ai_system_oncall/api/proto/tooling/v1"
+	"google.golang.org/grpc"
 
 	"go.uber.org/zap"
 )
@@ -75,8 +79,11 @@ func main() {
 		logger.Warnf("Rate limiter initialization failed: %v", err)
 	}
 
+	// 初始化所有 service（供 HTTP + gRPC 共用）
+	services := router.InitServices()
+
 	// Setup router
-	r := router.SetupRouter()
+	r := router.SetupRouterWithServices(services)
 
 	// Create HTTP server
 	srv := &http.Server{
@@ -86,7 +93,7 @@ func main() {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	// Start server in goroutine
+	// 启动 HTTP server
 	go func() {
 		logger.Infof("Starting server on port %d", cfg.Server.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -94,19 +101,50 @@ func main() {
 		}
 	}()
 
+	// 启动 gRPC server（同进程多协议）
+	var grpcSrv *grpcserver.Server
+	if cfg.Server.GRPCPort > 0 {
+		grpcAddr := fmt.Sprintf(":%d", cfg.Server.GRPCPort)
+		logInst := zap.L()
+		var err error
+		grpcSrv, err = grpcserver.NewServer(grpcAddr, logInst,
+			[]grpc.UnaryServerInterceptor{grpcserver.JWTAuthInterceptor(logInst)},
+			[]grpc.StreamServerInterceptor{grpcserver.JWTAuthStreamInterceptor(logInst)})
+		if err != nil {
+			logger.Fatalf("Failed to create gRPC server: %v", err)
+		}
+
+		// 注册 ToolingService
+		toolingv1.RegisterToolingServiceServer(grpcSrv.GetServer(), grpcserver.NewToolingServer(
+			services.ServiceService, services.IssueService,
+			services.KnowledgeDocService, services.SimulatedLogService,
+		))
+
+		go func() {
+			logger.Infof("Starting gRPC server on %s", grpcAddr)
+			if err := grpcSrv.Start(); err != nil {
+				logger.Errorf("gRPC server error: %v", err)
+			}
+		}()
+	}
+
 	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	logger.Info("Shutting down server...")
+	logger.Info("Shutting down servers...")
 
-	// Give outstanding requests 30 seconds to complete
+	// Graceful shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		logger.Errorf("Server forced to shutdown: %v", err)
+		logger.Errorf("HTTP server forced to shutdown: %v", err)
+	}
+
+	if grpcSrv != nil {
+		grpcSrv.Stop(ctx)
 	}
 
 	logger.Info("Server exited")
